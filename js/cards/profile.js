@@ -1,5 +1,5 @@
 import { T } from '../theme.js';
-import { W, PAD, text, font, spacedText, roundRect, rule,
+import { W, PAD, text, font, roundRect, rule,
          imgOf, isReady, coverImage, placeholder } from '../canvas/layout.js';
 
 const PW = 172;

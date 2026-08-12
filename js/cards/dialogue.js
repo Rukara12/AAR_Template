@@ -1,5 +1,5 @@
 import { T } from '../theme.js';
-import { W, PAD, text, font, imgOf, isReady, coverImage, placeholder } from '../canvas/layout.js';
+import { W, PAD, text, imgOf, isReady, coverImage, placeholder } from '../canvas/layout.js';
 
 const PW = 128;   // 초상화 폭
 const PH = 156;   // 초상화 높이

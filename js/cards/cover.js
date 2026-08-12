@@ -1,5 +1,5 @@
 import { T } from '../theme.js';
-import { W, PAD, CW, text, spacedText, spacedWidth, font, ornament,
+import { W, PAD, CW, text, spacedText, font, ornament,
          imgOf, isReady, coverImage, placeholder } from '../canvas/layout.js';
 
 export default {

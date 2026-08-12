@@ -32,6 +32,20 @@ export function imgOf(dataUrl) {
   return im;
 }
 export const isReady = im => !!im && im.complete && im.naturalWidth > 0;
+
+/**
+ * 아직 안 불린 이미지가 있으면 다 불릴 때까지 기다립니다.
+ * 내보내기 직전에 불러서, 자리 표시자가 찍힌 PNG 가 나가는 일을 막습니다.
+ */
+export function imagesReady(timeout = 4000) {
+  const pending = [...CACHE.values()].filter(im => !isReady(im));
+  if (!pending.length) return Promise.resolve();
+  return Promise.all(pending.map(im => new Promise(done => {
+    im.addEventListener('load', done, { once: true });
+    im.addEventListener('error', done, { once: true });
+    setTimeout(done, timeout);
+  })));
+}
 /** 이미지의 세로/가로 비율. 아직 안 불렸으면 기본값 */
 export const ratioOf = (im, fallback = 0.5625) =>
   isReady(im) ? im.naturalHeight / im.naturalWidth : fallback;
@@ -53,6 +67,9 @@ function tokenize(s) {
   return out;
 }
 
+/** 줄 첫머리에 오면 안 되는 글자 (금칙처리). 넘치더라도 앞줄에 붙입니다. */
+const NO_LINE_START = /^[.,!?;:%)\]}>”’」』〉》…·、。]/;
+
 export function wrapText(ctx, text, maxW) {
   const lines = [];
   for (const para of String(text ?? '').split('\n')) {
@@ -61,6 +78,7 @@ export function wrapText(ctx, text, maxW) {
     for (const tk of tokenize(para)) {
       const test = line + tk;
       if (line && ctx.measureText(test).width > maxW) {
+        if (NO_LINE_START.test(tk)) { line = test; continue; }  // 문장부호는 매달아 둡니다
         lines.push(line.replace(/\s+$/, ''));
         line = tk === ' ' ? '' : tk;
       } else line = test;

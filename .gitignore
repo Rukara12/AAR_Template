@@ -1,0 +1,13 @@
+# 로컬 확인용 스크립트 (개인 환경용, 배포와 무관)
+serve.bat
+
+# OS / 편집기
+Thumbs.db
+Desktop.ini
+.DS_Store
+.vscode/
+.idea/
+
+# 작업 중 파일
+node_modules/
+*.log
