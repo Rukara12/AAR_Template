@@ -25,23 +25,24 @@
 
 import cover    from './cover.js';
 import text     from './text.js';
+import verdict  from './verdict.js';
 import shot     from './shot.js';
 import image    from './image.js';
 import compare  from './compare.js';
+import status   from './status.js';
+import score    from './score.js';
+import proscons from './proscons.js';
 import dialogue from './dialogue.js';
 import profile  from './profile.js';
-import status   from './status.js';
 import quote    from './quote.js';
 import divider  from './divider.js';
-import choice   from './choice.js';
-import result   from './result.js';
-import outro    from './outro.js';
 
 export const LIST = [
-  cover, text, shot, image, compare,
-  dialogue, profile, status,
-  quote, divider,
-  choice, result, outro
+  cover, text, verdict,
+  shot, image, compare,
+  status, score, proscons,
+  dialogue, profile,
+  quote, divider
 ];
 
 export const BY_ID = Object.fromEntries(LIST.map(c => [c.id, c]));

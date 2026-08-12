@@ -5,7 +5,7 @@
 import { createCard, normalize } from './cards/registry.js';
 
 export const state = {
-  meta: { series: '', chapter: 1, game: '', maxH: 6000 },
+  meta: { series: '', chapter: 0, maxH: 6000, outScale: 2, format: 'webp', exportMode: 'merge' },
   cards: [],
   selId: null
 };
@@ -100,7 +100,7 @@ export function toJSON() {
 export function fromJSON(raw) {
   const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
   if (!data || !Array.isArray(data.cards)) throw new Error('연재 템플릿 프로젝트 파일이 아닙니다.');
-  state.meta = { series: '', chapter: 1, game: '', maxH: 6000, ...(data.meta || {}) };
+  state.meta = { series: '', chapter: 0, maxH: 6000, outScale: 2, format: 'webp', exportMode: 'merge', ...(data.meta || {}) };
   state.cards = data.cards.map(normalize).filter(Boolean);
   state.selId = state.cards[0]?.id ?? null;
   emit();

@@ -1,9 +1,14 @@
 /** 파일 읽기·내려받기 관련. */
-import { W } from '../canvas/layout.js';
 
-/** 원본이 너무 크면 프로젝트 파일이 무거워지므로 출력 폭에 맞춰 줄입니다. */
-const MAX_W = W;
-const MAX_H = 2400;
+/**
+ * 넣은 이미지를 보관할 최대 크기.
+ * 출력 배율을 3배(2550px)까지 올릴 수 있으므로 그보다 넉넉하게 잡습니다.
+ * 여기서 줄여 버리면 아무리 배율을 올려도 화질이 돌아오지 않습니다.
+ */
+const MAX_W = 2800;
+const MAX_H = 2800;
+/** 확대해서 잘라 쓰는 경우가 많아 압축을 세게 걸지 않습니다. */
+const JPEG_Q = 0.95;
 
 /**
  * 디시는 파일명이 한글·영문·숫자가 아니면 업로드가 깨질 수 있습니다.
@@ -42,7 +47,10 @@ function shrink(im) {
   const ctx = cv.getContext('2d');
   ctx.imageSmoothingQuality = 'high';
   ctx.drawImage(im, 0, 0, w, h);
-  return hasAlpha(ctx, w, h) ? cv.toDataURL('image/png') : cv.toDataURL('image/jpeg', 0.92);
+  if (hasAlpha(ctx, w, h)) return cv.toDataURL('image/png');
+  // webp 가 되면 같은 화질에 용량이 훨씬 작습니다.
+  const webp = cv.toDataURL('image/webp', JPEG_Q);
+  return webp.startsWith('data:image/webp') ? webp : cv.toDataURL('image/jpeg', JPEG_Q);
 }
 
 /** 투명 픽셀이 있으면 PNG 로 남깁니다. (그 외에는 JPEG 로 용량을 줄입니다) */
@@ -67,17 +75,27 @@ export function firstImageFrom(dt) {
   return null;
 }
 
-export function downloadCanvas(canvas, filename) {
+/** 저장 형식. webp 는 디시의 강제 리사이즈를 통과합니다. */
+export const FORMATS = {
+  webp: { mime: 'image/webp', ext: 'webp', q: 0.94 },
+  png:  { mime: 'image/png',  ext: 'png',  q: undefined }
+};
+
+/** @returns 저장한 파일 크기(byte) */
+export function downloadCanvas(canvas, baseName, formatKey = 'webp') {
+  const f = FORMATS[formatKey] || FORMATS.png;
   return new Promise(resolve => {
     canvas.toBlob(blob => {
+      // webp 를 지원하지 않는 브라우저면 png 로 떨어집니다.
+      const ext = blob.type === f.mime ? f.ext : 'png';
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url; a.download = filename;
+      a.href = url; a.download = `${baseName}.${ext}`;
       document.body.appendChild(a);
       a.click();
       a.remove();
-      setTimeout(() => { URL.revokeObjectURL(url); resolve(); }, 400);
-    }, 'image/png');
+      setTimeout(() => { URL.revokeObjectURL(url); resolve(blob.size); }, 400);
+    }, f.mime, f.q);
   });
 }
 

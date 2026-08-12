@@ -1,5 +1,5 @@
 import { T } from '../theme.js';
-import { W, PAD, CW, text, rule } from '../canvas/layout.js';
+import { W, PAD, CW, text, rule, textZone } from '../canvas/layout.js';
 
 export default {
   id: 'text',
@@ -11,11 +11,11 @@ export default {
   create: () => ({ heading: '', body: '', align: 'left', size: 20 }),
 
   fields: [
-    { k: 'heading', t: 'text',     label: '소제목 (비워도 됨)', ph: '동쪽 능선' },
-    { k: 'body',    t: 'textarea', label: '본문', rows: 9, ph: '척후병이 돌아왔다.\n동쪽 능선에 깃발이 서 있었다고 한다.' },
+    { k: 'heading', t: 'text',     label: '소제목 (비워도 됨)', ph: '초반 두 시간' },
+    { k: 'body',    t: 'textarea', label: '본문', rows: 9, ph: '처음엔 뭘 해야 할지 몰라서 좀 헤맸다.\n근데 감 잡고 나니까 손을 못 떼겠더라.' },
     { k: 'align',   t: 'select',   label: '정렬', opts: [['left', '왼쪽'], ['center', '가운데']] },
     { k: 'size',    t: 'number',   label: '글자 크기', min: 15, max: 30, step: 1 },
-    { k: '',        t: 'note',     text: '본문이 길면 그대로 카드가 길어집니다. 한 카드가 너무 길어지면 나레이션을 두 장으로 나누는 편이 읽기 좋습니다.' }
+    { k: '',        t: 'note',     text: '한 카드가 너무 길어지면 두 장으로 나누는 편이 읽기 좋습니다.' }
   ],
 
   label: c => (c.heading || c.body || '나레이션').split('\n')[0],
@@ -27,21 +27,23 @@ export default {
 
     const top = 34, bot = 34;
     const headH = head.empty ? 0 : head.h + 20;
+    const yBody = top + headH;
     const h = top + headH + Math.max(body.h, 30) + bot;
 
     return {
       h,
+      zones: [
+        textZone('heading', head, PAD, top),
+        textZone('body', body, PAD, yBody, { multiline: true })
+      ],
       paint(ctx) {
         ctx.fillStyle = T.bg;
         ctx.fillRect(0, 0, W, h);
-        let y = top;
         if (!head.empty) {
-          head.paint(ctx, PAD, y);
-          y += head.h + 8;
-          rule(ctx, PAD, y, CW, T.line);
-          y += 12;
+          head.paint(ctx, PAD, top);
+          rule(ctx, PAD, top + head.h + 8, CW, T.line);
         }
-        body.paint(ctx, PAD, y);
+        body.paint(ctx, PAD, yBody);
       }
     };
   }

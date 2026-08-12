@@ -6,6 +6,7 @@
 import { BY_ID } from '../cards/registry.js';
 import { state, selected, patch } from '../state.js';
 import { readImageFile, firstImageFrom } from '../io/files.js';
+import { makeImageBox } from './imagebox.js';
 import { toast } from './toast.js';
 
 /** 붙여넣기(Ctrl+V) 대상이 되는 이미지 칸 */
@@ -35,7 +36,7 @@ export function renderInspector(root) {
     pasteTarget = { cardId: card.id, key: firstImage.k };
   }
 
-  for (const f of def.fields) root.appendChild(buildField(card, f));
+  for (const f of def.fields) root.appendChild(buildField(card, f, def));
 }
 
 function wrapField(label, node, extra) {
@@ -51,7 +52,7 @@ function wrapField(label, node, extra) {
   return d;
 }
 
-function buildField(card, f) {
+function buildField(card, f, def) {
   const v = card[f.k];
 
   switch (f.t) {
@@ -136,7 +137,7 @@ function buildField(card, f) {
       return d;
     }
 
-    case 'image':   return imageField(card, f, v);
+    case 'image':   return imageField(card, f, v, def);
     case 'strlist': return strListField(card, f, v);
     case 'pairs':   return pairsField(card, f, v);
 
@@ -150,12 +151,14 @@ function buildField(card, f) {
 }
 
 /* ── 이미지 칸 ──────────────────────────────────────────── */
-function imageField(card, f, v) {
+function imageField(card, f, v, def) {
   const box = document.createElement('div');
   box.className = 'imgfield';
 
   const apply = async file => {
     try {
+      // 새 이미지를 넣으면 이전 확대·위치는 의미가 없으므로 되돌립니다.
+      if (f.tf) patch(card.id, f.tf, { s: 1, x: 0, y: 0 });
       patch(card.id, f.k, await readImageFile(file));
     } catch (e) {
       toast(e.message);
@@ -163,10 +166,14 @@ function imageField(card, f, v) {
   };
 
   if (v) {
-    const img = document.createElement('img');
-    img.className = 'thumb';
-    img.src = v;
-    box.appendChild(img);
+    if (f.tf) {
+      box.appendChild(makeImageBox(card, def, f, (k, val) => patch(card.id, k, val)));
+    } else {
+      const img = document.createElement('img');
+      img.className = 'thumb';
+      img.src = v;
+      box.appendChild(img);
+    }
     const del = document.createElement('button');
     del.className = 'ghost tiny';
     del.textContent = '이미지 지우기';

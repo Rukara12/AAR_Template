@@ -1,17 +1,17 @@
 import { T } from '../theme.js';
-import { W, PAD, CW, font, spacedText, spacedWidth, rule } from '../canvas/layout.js';
+import { W, PAD, CW, font, spacedText, spacedWidth, rule, text, textZone } from '../canvas/layout.js';
 
 export default {
   id: 'divider',
   name: '장면 전환',
-  desc: '— 3일 후 —',
+  desc: '— 10시간 뒤 —',
   group: '연출',
   accent: '#867c69',
 
-  create: () => ({ body: '3일 후' }),
+  create: () => ({ body: '10시간 뒤' }),
 
   fields: [
-    { k: 'body', t: 'text', label: '문구 (비우면 선만 그립니다)', ph: '3일 후' }
+    { k: 'body', t: 'text', label: '문구 (비우면 선만 그립니다)', ph: '10시간 뒤' }
   ],
 
   label: c => c.body || '장면 전환',
@@ -20,6 +20,9 @@ export default {
     const h = 84;
     return {
       h,
+      zones: [
+        textZone('body', text(c.body, { size: 17, color: T.ink3, lh: 30, align: 'center' }), PAD, 27)
+      ],
       paint(ctx) {
         ctx.fillStyle = T.bg;
         ctx.fillRect(0, 0, W, h);

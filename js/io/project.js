@@ -53,7 +53,9 @@ export function clearSaved() {
 }
 
 export function exportProject() {
-  const name = `${safeName(state.meta.series, '연재')}_${state.meta.chapter}화.json`;
+  const n = +state.meta.chapter;
+  const base = safeName(state.meta.series, '리뷰');
+  const name = `${n > 0 ? `${base}_${n}화` : base}.json`;
   downloadText(toJSON(), name);
   toast(`${name} 저장했습니다.`);
 }

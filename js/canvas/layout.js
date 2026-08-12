@@ -112,7 +112,8 @@ export function text(str, opt = {}) {
     lines,
     empty: lines.length === 0,
     h: lines.length * step,
-    step,
+    // 미리보기에서 바로 고칠 수 있도록 글자 모양을 그대로 들고 다닙니다.
+    step, size, weight, family, color, align, maxW,
     paint(ctx, x, y, over = {}) {
       font(ctx, size, weight, family);
       ctx.fillStyle = over.color ?? color;
@@ -129,6 +130,27 @@ export function text(str, opt = {}) {
       });
     }
   };
+}
+
+/* ── 미리보기에서 직접 고치기 위한 영역 표시 ─────────────
+   카드가 build() 에서 zones 배열에 담아 주면, 미리보기가 그 자리에서
+   글을 고치거나 이미지를 끌 수 있게 해 줍니다. (js/ui/direct.js) */
+
+/** 글 영역. block 은 text() 가 돌려준 것 */
+export function textZone(k, block, x, y, extra = {}) {
+  return {
+    kind: 'text', k, x, y,
+    w: extra.w ?? block.maxW,
+    h: Math.max(block.h, block.step),   // 비어 있어도 누를 수 있게
+    size: block.size, lh: block.step, weight: block.weight,
+    family: block.family, color: block.color, align: block.align,
+    ...extra
+  };
+}
+
+/** 이미지 영역. tf 는 확대·이동값이 담긴 속성 이름 */
+export function imageZone(k, tf, x, y, w, h) {
+  return { kind: 'image', k, tf, x, y, w, h };
 }
 
 /** 자간을 벌린 한 줄 (라벨·소제목용) */
@@ -177,8 +199,13 @@ export function rule(ctx, x, y, w, color = T.line, lw = 1) {
   ctx.stroke();
 }
 
-/** 가운데 마름모가 있는 중세풍 장식선 */
+/** 가운데를 강조한 구분선. 톤이 plain 이면 단순한 짧은 선만 그립니다. */
 export function ornament(ctx, cx, y, w) {
+  if (T.plain) {
+    ctx.fillStyle = T.accent2;
+    ctx.fillRect(Math.round(cx - 22), Math.round(y), 44, 2);
+    return;
+  }
   ctx.strokeStyle = T.accent2;
   ctx.lineWidth = 1;
   ctx.beginPath();
@@ -194,14 +221,31 @@ export function ornament(ctx, cx, y, w) {
 }
 
 /* ── 이미지 배치 ────────────────────────────────────────── */
-/** 영역을 꽉 채우고 넘치는 부분은 잘라냅니다. */
-export function coverImage(ctx, im, x, y, w, h) {
-  const s = Math.max(w / im.naturalWidth, h / im.naturalHeight);
-  const dw = im.naturalWidth * s, dh = im.naturalHeight * s;
+/** 이미지 조절값의 기본형. s = 확대(1 이상), x·y = 이동(-1 ~ 1) */
+export const NO_TF = { s: 1, x: 0, y: 0 };
+
+/**
+ * 상자를 꽉 채운 뒤, 확대·이동값만큼 옮겨 그립니다. 넘치는 부분은 잘립니다.
+ * x·y 는 -1 이 왼쪽·위 끝, +1 이 오른쪽·아래 끝입니다. 확대하지 않았으면 움직일 여지가 없습니다.
+ */
+export function placeImage(ctx, im, x, y, w, h, tf) {
+  const s = Math.max(1, tf?.s ?? 1);
+  const base = Math.max(w / im.naturalWidth, h / im.naturalHeight) * s;
+  const dw = im.naturalWidth * base, dh = im.naturalHeight * base;
+  const slackX = Math.max(0, dw - w) / 2;
+  const slackY = Math.max(0, dh - h) / 2;
+  const cx = x + w / 2 + slackX * clamp1(tf?.x);
+  const cy = y + h / 2 + slackY * clamp1(tf?.y);
   ctx.save();
   ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip();
-  ctx.drawImage(im, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
+  ctx.drawImage(im, cx - dw / 2, cy - dh / 2, dw, dh);
   ctx.restore();
+}
+const clamp1 = v => Math.max(-1, Math.min(1, +v || 0));
+
+/** 영역을 꽉 채우고 넘치는 부분은 잘라냅니다. */
+export function coverImage(ctx, im, x, y, w, h) {
+  placeImage(ctx, im, x, y, w, h, NO_TF);
 }
 
 /** 영역 안에 비율 그대로 넣습니다. */

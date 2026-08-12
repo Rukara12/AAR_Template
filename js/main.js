@@ -5,80 +5,138 @@
 import { state, subscribe, setMeta, newChapter, nextChapter,
          undoDelete, removeCard, patch, addCard } from './state.js';
 import { setImageLoadHandler } from './canvas/layout.js';
+import { THEMES, DEFAULT_THEME, setTheme } from './theme.js';
+import { clearPreviewCache } from './ui/preview.js';
 import { mountPalette } from './ui/palette.js';
 import { mountCardList, renderCardList } from './ui/cardlist.js';
 import { renderInspector, pasteTarget } from './ui/inspector.js';
-import { renderStage } from './ui/stage.js';
+import { isAdjusting } from './ui/imagebox.js';
+import { isBusy, closeEditor } from './ui/direct.js';
+import { renderStage, scrollToCard } from './ui/stage.js';
+import { initUiScale, stepScale, resetScale } from './ui/uiscale.js';
+import { openExportDialog } from './ui/exportdialog.js';
 import { toast } from './ui/toast.js';
-import { exportEach, exportMerged } from './io/export.js';
 import { autosave, restore, exportProject, importProject } from './io/project.js';
 import { readImageFile, firstImageFrom } from './io/files.js';
 
 const $ = id => document.getElementById(id);
 
 const el = {
-  ptiles: $('ptiles'), cardlist: $('cardlist'), rail: $('rail'),
-  insp: $('inspBody'), stage: $('stageInner'), stagemeta: $('stagemeta'),
-  series: $('mSeries'), chapter: $('mChapter'), game: $('mGame'), maxH: $('mMaxH')
+  app: $('app'), ptiles: $('ptiles'), cardlist: $('cardlist'), rail: $('rail'),
+  insp: $('insp'), inspBody: $('inspBody'), stage: $('stageInner'), stagemeta: $('stagemeta'),
+  series: $('mSeries'), chapter: $('mChapter'), more: $('moreMenu'), theme: $('mTheme')
 };
 
+/* ── 출력 톤 ────────────────────────────────────────────── */
+const THEME_KEY = 'aar-template/theme';
+
+for (const [key, t] of Object.entries(THEMES)) {
+  const o = document.createElement('option');
+  o.value = key;
+  o.textContent = t.label;
+  el.theme.appendChild(o);
+}
+
+function applyTheme(key, persist = true) {
+  setTheme(key);
+  el.theme.value = key;
+  clearPreviewCache();
+  renderStage(el.stage, el.stagemeta);
+  if (persist) { try { localStorage.setItem(THEME_KEY, key); } catch { /* noop */ } }
+}
+
+el.theme.addEventListener('change', () => applyTheme(el.theme.value));
+
 /* ── 화면 갱신 ──────────────────────────────────────────── */
+let lastSel = null;
+
 function refresh() {
   renderCardList();
-  // 글자를 치는 도중에 폼을 다시 그리면 커서가 튀므로, 입력 중에는 건너뜁니다.
+
+  // 글을 치거나 이미지를 맞추는 중에 폼을 다시 그리면 커서가 튑니다.
   const a = document.activeElement;
-  const typingInForm = el.insp.contains(a) && /^(INPUT|TEXTAREA)$/.test(a?.tagName);
-  if (!typingInForm) renderInspector(el.insp);
+  const typing = el.insp.contains(a) && /^(INPUT|TEXTAREA)$/.test(a?.tagName);
+  if (!typing && !isAdjusting() && !isBusy()) renderInspector(el.inspBody);
+
   renderStage(el.stage, el.stagemeta);
   syncMeta();
+
+  if (state.selId && state.selId !== lastSel) {
+    lastSel = state.selId;
+    requestAnimationFrame(() => scrollToCard(state.selId));
+  }
 }
 
 function syncMeta() {
   if (document.activeElement !== el.series)  el.series.value  = state.meta.series;
-  if (document.activeElement !== el.chapter) el.chapter.value = state.meta.chapter;
-  if (document.activeElement !== el.game)    el.game.value    = state.meta.game;
-  if (document.activeElement !== el.maxH)    el.maxH.value    = state.meta.maxH;
+  // 회차는 연재일 때만 씁니다. 0 이면 빈 칸으로 둡니다.
+  if (document.activeElement !== el.chapter) {
+    el.chapter.value = +state.meta.chapter > 0 ? state.meta.chapter : '';
+  }
 }
 
 /* ── 배선 ───────────────────────────────────────────────── */
-mountPalette(el.ptiles);
+mountPalette(el.ptiles, el.app);
 mountCardList(el.cardlist, el.rail);
 setImageLoadHandler(() => renderStage(el.stage, el.stagemeta));
+
+initUiScale($('uiLevel'), () => renderStage(el.stage, el.stagemeta));
+$('uiDown').addEventListener('click', () => stepScale(-1));
+$('uiUp').addEventListener('click', () => stepScale(1));
+$('uiLevel').addEventListener('click', resetScale);
 
 subscribe(() => { refresh(); autosave(); });
 
 el.series.addEventListener('input',  () => setMeta('series', el.series.value));
-el.game.addEventListener('input',    () => setMeta('game', el.game.value));
 el.chapter.addEventListener('input', () => setMeta('chapter', +el.chapter.value || 0));
-el.maxH.addEventListener('input',    () => setMeta('maxH', +el.maxH.value || 6000));
+
+/* 회차 메뉴 */
+const closeMenu = () => { el.more.hidden = true; };
+$('btnMore').addEventListener('click', e => {
+  e.stopPropagation();
+  el.more.hidden = !el.more.hidden;
+});
+document.addEventListener('click', closeMenu);
+el.more.addEventListener('click', e => e.stopPropagation());
 
 $('btnNew').addEventListener('click', () => {
+  closeMenu();
   if (state.cards.length && !confirm('현재 회차의 카드를 모두 비웁니다. 계속할까요?')) return;
   newChapter();
   toast('새 회차를 시작했습니다.');
 });
 
 $('btnNext').addEventListener('click', () => {
+  closeMenu();
   nextChapter();
-  toast(`${state.meta.chapter}화로 넘어갔습니다. 상황 요약·인물 카드는 그대로 남겨 뒀습니다.`, 3200);
+  toast(`${state.meta.chapter}화로 넘어갔습니다. 상황 요약·인물 카드는 남겨 뒀습니다.`, 3400);
 });
 
-$('btnSave').addEventListener('click', exportProject);
+$('btnSave').addEventListener('click', () => { closeMenu(); exportProject(); });
 
 $('btnLoad').addEventListener('click', () => {
+  closeMenu();
   const p = $('projPick');
   p.value = '';
   p.onchange = () => { if (p.files[0]) importProject(p.files[0]); };
   p.click();
 });
 
-$('btnEach').addEventListener('click', exportEach);
-$('btnMerge').addEventListener('click', exportMerged);
+$('btnExport').addEventListener('click', () => { closeEditor(); openExportDialog(); });
+
+/* 카드 속성 패널 여닫기 */
+$('btnPanel').addEventListener('click', () => {
+  const off = document.body.classList.toggle('nopanel');
+  $('btnPanel').classList.toggle('on', !off);
+  try { localStorage.setItem('aar-template/panel', off ? '0' : '1'); } catch { /* noop */ }
+});
+try {
+  if (localStorage.getItem('aar-template/panel') === '0') document.body.classList.add('nopanel');
+} catch { /* noop */ }
 
 /* ── 붙여넣기로 이미지 넣기 ─────────────────────────────── */
 document.addEventListener('paste', async e => {
-  const t = /^(INPUT|TEXTAREA)$/.test(document.activeElement?.tagName);
-  if (t) return;
+  if (/^(INPUT|TEXTAREA)$/.test(document.activeElement?.tagName)) return;
   const file = firstImageFrom(e.clipboardData);
   if (!file) return;
   if (!pasteTarget) return toast('이미지를 넣을 카드를 먼저 골라 주세요.');
@@ -100,7 +158,6 @@ document.addEventListener('drop', async e => {
   if (!file) return;
   e.preventDefault();
   if (!pasteTarget) {
-    // 고른 카드가 없으면 자막 스샷 카드를 새로 만들어 넣습니다.
     const card = addCard('shot');
     patch(card.id, 'img', await readImageFile(file));
     toast('스샷 카드를 새로 만들었습니다.');
@@ -126,14 +183,16 @@ document.addEventListener('keydown', e => {
 });
 
 /* ── 시작 ───────────────────────────────────────────────── */
+let savedTheme = null;
+try { savedTheme = localStorage.getItem(THEME_KEY); } catch { /* noop */ }
+applyTheme(THEMES[savedTheme] ? savedTheme : DEFAULT_THEME, false);
+
 if (!restore()) {
-  state.meta.series = '';
-  ['cover', 'status', 'shot', 'dialogue', 'choice'].forEach(t => addCard(t));
+  // 리뷰 한 편의 기본 뼈대
+  ['cover', 'status', 'shot', 'text', 'score', 'proscons', 'verdict'].forEach(t => addCard(t));
   state.selId = state.cards[0].id;
 }
 refresh();
 
 // 웹폰트가 늦게 오면 글자 위치가 달라지므로 다 불린 뒤 한 번 더 그립니다.
-if (document.fonts?.ready) {
-  document.fonts.ready.then(() => renderStage(el.stage, el.stagemeta));
-}
+document.fonts?.ready.then(() => renderStage(el.stage, el.stagemeta));

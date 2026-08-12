@@ -1,6 +1,6 @@
 import { T } from '../theme.js';
-import { W, PAD, text, font, roundRect, rule,
-         imgOf, isReady, coverImage, placeholder } from '../canvas/layout.js';
+import { W, PAD, text, font, roundRect, rule, textZone, imageZone,
+         imgOf, isReady, placeImage, placeholder } from '../canvas/layout.js';
 
 const PW = 172;
 const PH = 210;
@@ -8,22 +8,25 @@ const GAP = 24;
 
 export default {
   id: 'profile',
-  name: '인물 소개',
-  desc: '등장인물 카드',
-  group: '인물',
+  name: '캐릭터 소개',
+  desc: '등장인물 한 장',
+  group: '캐릭터',
   accent: '#7fa6d0',
 
-  create: () => ({ portrait: null, name: '', role: '', traits: ['', ''], body: '' }),
+  create: () => ({
+    portrait: null, portraitTf: { s: 1, x: 0, y: 0 },
+    name: '', role: '', traits: ['', ''], body: ''
+  }),
 
   fields: [
-    { k: 'portrait', t: 'image',    label: '초상화' },
-    { k: 'name',     t: 'text',     label: '이름', ph: '리안느 드 발루아' },
-    { k: 'role',     t: 'text',     label: '직함', ph: '성주 대리 · 24세' },
-    { k: 'traits',   t: 'strlist',  label: '특성 (태그)', ph: '냉정함', add: '특성 추가' },
-    { k: 'body',     t: 'textarea', label: '소개 글', rows: 5 }
+    { k: 'portrait', t: 'image', label: '캐릭터 이미지', tf: 'portraitTf', aspect: PW / PH },
+    { k: 'name',     t: 'text',     label: '이름', ph: '캐릭터 이름' },
+    { k: 'role',     t: 'text',     label: '직함', ph: '주인공' },
+    { k: 'traits',   t: 'strlist',  label: '특성 (태그)', ph: '허당', add: '특성 추가' },
+    { k: 'body',     t: 'textarea', label: '소개 글', rows: 5, ph: '처음엔 별로였는데 후반 가면 제일 정드는 캐릭터.' }
   ],
 
-  label: c => c.name || '인물 소개',
+  label: c => c.name || '캐릭터 소개',
 
   build(c) {
     const textW = W - PAD * 2 - PW - GAP;
@@ -38,54 +41,61 @@ export default {
                 + chipH + (bodyT.empty ? 0 : bodyT.h + 14);
     const h = 34 + Math.max(PH, textH) + 34;
 
+    const px = PAD, py = 34, tx = PAD + PW + GAP;
+    const yName = 34;
+    const yRole = yName + (nameT.empty ? 0 : nameT.h) + 4;
+    const yChip = yRole + (roleT.empty ? 0 : roleT.h) + 8;
+    const yBody = yChip + chipH + 14;
+
     return {
       h,
+      zones: [
+        imageZone('portrait', 'portraitTf', px, py, PW, PH),
+        textZone('name', nameT, tx, yName, { w: textW }),
+        textZone('role', roleT, tx, yRole, { w: textW }),
+        textZone('body', bodyT, tx, yBody, { w: textW, multiline: true })
+      ],
       paint(ctx) {
         ctx.fillStyle = T.panel;
         ctx.fillRect(0, 0, W, h);
         ctx.fillStyle = T.accent;
         ctx.fillRect(0, 0, 4, h);
 
-        const px = PAD, py = 34, tx = PAD + PW + GAP;
         const im = imgOf(c.portrait);
         ctx.fillStyle = '#14110d';
         ctx.fillRect(px, py, PW, PH);
-        if (isReady(im)) coverImage(ctx, im, px, py, PW, PH);
-        else placeholder(ctx, px, py, PW, PH, '초상화');
+        if (isReady(im)) placeImage(ctx, im, px, py, PW, PH, c.portraitTf);
+        else placeholder(ctx, px, py, PW, PH, '캐릭터');
         ctx.strokeStyle = T.accent2;
         ctx.lineWidth = 2;
         ctx.strokeRect(px + 1, py + 1, PW - 2, PH - 2);
 
-        let y = 34;
-        if (!nameT.empty) { nameT.paint(ctx, tx, y); y += nameT.h; }
-        if (!roleT.empty) { roleT.paint(ctx, tx, y + 4); y += roleT.h + 4; }
+        if (!nameT.empty) nameT.paint(ctx, tx, yName);
+        if (!roleT.empty) roleT.paint(ctx, tx, yRole);
 
         if (traits.length) {
-          y += 8;
           font(ctx, 14, 400, T.sans);
           let cx = tx;
           for (const tr of traits) {
             const tw = ctx.measureText(tr).width + 22;
             if (cx + tw > tx + textW) break;
             ctx.fillStyle = T.panel2;
-            roundRect(ctx, cx, y, tw, 26, 13);
+            roundRect(ctx, cx, yChip, tw, 26, 13);
             ctx.fill();
             ctx.strokeStyle = T.accent2;
             ctx.lineWidth = 1;
             ctx.stroke();
             ctx.fillStyle = T.accent;
             ctx.textBaseline = 'middle';
-            ctx.fillText(tr, cx + 11, y + 14);
+            ctx.fillText(tr, cx + 11, yChip + 14);
             ctx.textBaseline = 'alphabetic';
             cx += tw + 7;
           }
-          y += 28;
         }
 
         if (!bodyT.empty) {
-          y += 14;
-          rule(ctx, tx, y - 7, textW, T.line);
-          bodyT.paint(ctx, tx, y);
+          rule(ctx, tx, yBody - 7, textW, T.line);
+          bodyT.paint(ctx, tx, yBody);
         }
       }
     };

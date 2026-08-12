@@ -1,10 +1,12 @@
 /** 왼쪽 카드 팔레트. 타일을 끌어다 놓거나 클릭해서 카드를 추가합니다. */
 import { GROUPS } from '../cards/registry.js';
 import { addCard } from '../state.js';
+import { showPreview, hidePreview } from './preview.js';
 
 export const DRAG_TYPE = 'application/x-card-type';
 
-export function mountPalette(root) {
+/** @param popHost 견본이 뜰 기준 요소 (보통 #app) */
+export function mountPalette(root, popHost) {
   root.innerHTML = '';
   for (const g of GROUPS) {
     const h = document.createElement('h4');
@@ -24,13 +26,17 @@ export function mountPalette(root) {
       el.querySelector('.ds').textContent = def.desc;
 
       el.addEventListener('dragstart', e => {
+        hidePreview();
         e.dataTransfer.setData(DRAG_TYPE, def.id);
         e.dataTransfer.setData('text/plain', def.id);
         e.dataTransfer.effectAllowed = 'copy';
         el.classList.add('dragging');
       });
       el.addEventListener('dragend', () => el.classList.remove('dragging'));
-      el.addEventListener('click', () => addCard(def.id));
+      el.addEventListener('click', () => { hidePreview(); addCard(def.id); });
+
+      el.addEventListener('mouseenter', () => showPreview(def, el, popHost));
+      el.addEventListener('mouseleave', hidePreview);
 
       root.appendChild(el);
     }
