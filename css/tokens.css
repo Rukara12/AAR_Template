@@ -1,0 +1,23 @@
+/* 편집기 UI 색상 토큰. 출력 이미지 색상은 js/theme.js 에서 따로 관리합니다. */
+:root{
+  --bg:#15130f;
+  --panel:#1d1a15;
+  --panel2:#252118;
+  --line:#3a3327;
+
+  --gold:#c8973f;
+  --gold-dim:#8a6a2c;
+
+  --ink:#ece7db;
+  --ink2:#a99e8a;
+  --ink3:#78705f;
+
+  --ok:#8fb254;
+  --warn:#d99a3a;
+  --bad:#c26a63;
+
+  --ui:"Noto Sans KR","Malgun Gothic","맑은 고딕",sans-serif;
+  --serif:"Nanum Myeongjo",Batang,"바탕",serif;
+
+  --radius:4px;
+}

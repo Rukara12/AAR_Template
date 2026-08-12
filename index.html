@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>연재 템플릿 — 게임 연재 이미지 생성기</title>
+<meta name="description" content="디시인사이드 게임 연재용 이미지를 카드 단위로 조립해 850px PNG로 뽑는 도구">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Nanum+Myeongjo:wght@400;700;800&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./css/tokens.css">
+<link rel="stylesheet" href="./css/app.css">
+</head>
+<body>
+
+<header id="top">
+  <span class="brand">연재 템플릿</span>
+  <span class="tag">가로 850px 고정 · 디시 업로드 규격</span>
+  <span class="sp"></span>
+  <button id="btnNew" class="ghost">새 회차</button>
+  <button id="btnNext" class="ghost">다음 화 이어받기</button>
+  <button id="btnLoad" class="ghost">불러오기</button>
+  <button id="btnSave" class="ghost">프로젝트 저장</button>
+  <button id="btnEach">낱장 PNG</button>
+  <button id="btnMerge" class="primary">세로 합본 저장</button>
+</header>
+
+<main id="app">
+
+  <section id="palette" aria-label="카드 팔레트">
+    <h3>카드 팔레트</h3>
+    <div id="ptiles"></div>
+    <p class="hint">타일을 오른쪽 <b>회차 구성</b>으로 끌어다 놓으세요. 클릭하면 맨 아래에 추가됩니다.</p>
+  </section>
+
+  <section id="rail" aria-label="회차 구성">
+    <h3>회차 구성</h3>
+    <div id="cardlist"></div>
+    <div id="emptyhint">여기로 카드를 끌어다 놓으세요</div>
+    <hr>
+    <h3>회차 정보</h3>
+    <div class="field"><label for="mSeries">연재 제목</label><input id="mSeries" placeholder="겨울 성채 연대기"></div>
+    <div class="row">
+      <div class="field"><label for="mChapter">회차</label><input id="mChapter" type="number" min="0" value="1"></div>
+      <div class="field"><label for="mGame">게임명</label><input id="mGame" placeholder="크루세이더 킹즈 3"></div>
+    </div>
+    <div class="field">
+      <label for="mMaxH">합본 최대 높이 (px)</label>
+      <input id="mMaxH" type="number" min="1000" step="500" value="6000">
+      <p class="hint">넘으면 카드 경계에서 자동으로 여러 장 분할합니다.</p>
+    </div>
+  </section>
+
+  <section id="insp" aria-label="카드 속성">
+    <h3>카드 속성</h3>
+    <div id="inspBody"></div>
+  </section>
+
+  <section id="stage" aria-label="미리보기">
+    <div id="stageInner"></div>
+    <p id="stagemeta"></p>
+  </section>
+
+</main>
+
+<div id="toast" role="status" aria-live="polite"></div>
+<input type="file" id="filePick" accept="image/*" hidden>
+<input type="file" id="projPick" accept="application/json,.json" hidden>
+
+<script type="module" src="./js/main.js"></script>
+</body>
+</html>
