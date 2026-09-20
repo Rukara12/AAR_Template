@@ -31,7 +31,7 @@ export default {
       numeric: true, maxFrom: 'max' },
     { k: 'max',     t: 'number', label: '만점', min: 1, max: 100, step: 1 },
     { k: 'total',   t: 'text',   label: '총점 (비우면 평균)', ph: '7.8' },
-    { k: 'note',    t: 'text',   label: '아래 한 줄', ph: '조작감만 손보면 진짜 물건이다' }
+    { k: 'note',    t: 'text',   label: '아래 한 줄', ph: '조작 편의성만 보완되면 좋겠다' }
   ],
 
   label: c => c.heading || '평점',

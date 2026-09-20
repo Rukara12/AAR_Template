@@ -22,7 +22,7 @@ export default {
       tf: 'portraitTf', aspect: PW / PH },
     { k: 'name',     t: 'text',     label: '이름', ph: '캐릭터 이름' },
     { k: 'role',     t: 'text',     label: '직함 · 설명', ph: '주인공' },
-    { k: 'body',     t: 'textarea', label: '대사', rows: 5, ph: '이 대사 하나 때문에 캐릭터가 좋아졌다' },
+    { k: 'body',     t: 'textarea', label: '대사', rows: 5, ph: '여기서 이 인물의 입장이 드러난다' },
     { k: 'side',     t: 'select',   label: '이미지 위치', opts: [['left', '왼쪽'], ['right', '오른쪽']] },
     { k: 'quoted',   t: 'toggle',   label: '「 」 낫표 자동으로 붙이기' }
   ],

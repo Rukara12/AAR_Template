@@ -12,7 +12,7 @@ export default {
 
   fields: [
     { k: 'heading', t: 'text',     label: '소제목', ph: '초반 두 시간' },
-    { k: 'body',    t: 'textarea', label: '본문', rows: 9, ph: '처음엔 뭘 해야 할지 몰라서 좀 헤맸다.\n근데 감 잡고 나니까 손을 못 떼겠더라.' },
+    { k: 'body',    t: 'textarea', label: '본문', rows: 9, ph: '처음에는 안내가 적어 적응에 시간이 걸린다.\n구조를 파악하고 나면 진행이 빨라진다.' },
     { k: 'align',   t: 'select',   label: '정렬', opts: [['left', '왼쪽'], ['center', '가운데']] },
     { k: 'size',    t: 'number',   label: '글자 크기', min: 15, max: 30, step: 1 }
   ],

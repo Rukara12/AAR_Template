@@ -19,7 +19,7 @@ export default {
 
   fields: [
     { k: 'goodTitle', t: 'text',    label: '왼쪽 제목', ph: '좋은 점' },
-    { k: 'goods',     t: 'strlist', label: '좋은 점', ph: '전투가 손에 착 붙는다', add: '항목 추가' },
+    { k: 'goods',     t: 'strlist', label: '좋은 점', ph: '조작 반응이 빠르다', add: '항목 추가' },
     { k: 'badTitle',  t: 'text',    label: '오른쪽 제목', ph: '아쉬운 점' },
     { k: 'bads',      t: 'strlist', label: '아쉬운 점', ph: '후반부 반복 구간이 길다', add: '항목 추가' }
   ],

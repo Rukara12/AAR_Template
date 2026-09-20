@@ -13,7 +13,7 @@ export default {
   fields: [
     { k: 'no',    t: 'text', label: '번호', ph: '1' },
     { k: 'title', t: 'text', label: '제목', ph: '전투' },
-    { k: 'sub',   t: 'text', label: '한 줄 설명', ph: '이 게임의 8할' }
+    { k: 'sub',   t: 'text', label: '한 줄 설명', ph: '핵심 시스템' }
   ],
 
   label: c => [c.no, c.title].filter(Boolean).join('. ') || '섹션 제목',

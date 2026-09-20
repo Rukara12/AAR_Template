@@ -12,8 +12,8 @@ export default {
 
   fields: [
     { k: 'heading', t: 'text',     label: '소제목', ph: '총평' },
-    { k: 'line',    t: 'textarea', label: '한 줄 평', rows: 2, ph: '세일하면 무조건 사라' },
-    { k: 'body',    t: 'textarea', label: '본문', rows: 5, ph: '단점 없는 게임은 아니다. 근데 그거 다 감수할 만큼 좋은 구간이 확실히 있다.' }
+    { k: 'line',    t: 'textarea', label: '한 줄 평', rows: 2, ph: '단점을 감안해도 추천할 만하다' },
+    { k: 'body',    t: 'textarea', label: '본문', rows: 5, ph: '아쉬운 부분은 있지만 전체 완성도는 준수하다.' }
   ],
 
   label: c => c.line || c.heading || '총평',

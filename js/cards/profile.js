@@ -22,8 +22,8 @@ export default {
     { k: 'portrait', t: 'image', label: '캐릭터 이미지', tf: 'portraitTf', aspect: PW / PH },
     { k: 'name',     t: 'text',     label: '이름', ph: '캐릭터 이름' },
     { k: 'role',     t: 'text',     label: '직함', ph: '주인공' },
-    { k: 'traits',   t: 'strlist',  label: '특성', ph: '허당', add: '특성 추가' },
-    { k: 'body',     t: 'textarea', label: '소개 글', rows: 5, ph: '처음엔 별로였는데 후반 가면 제일 정드는 캐릭터.' }
+    { k: 'traits',   t: 'strlist',  label: '특성', ph: '동료', add: '특성 추가' },
+    { k: 'body',     t: 'textarea', label: '소개 글', rows: 5, ph: '초반에는 비중이 적지만 후반에 역할이 커진다.' }
   ],
 
   label: c => c.name || '캐릭터 소개',

@@ -6,7 +6,7 @@
  */
 
 const SANS  = '"Pretendard Variable", Pretendard, "Noto Sans KR", "Malgun Gothic", sans-serif';
-const MYUNG = '"Nanum Myeongjo", Batang, "바탕", serif';
+// 톤에서 명조 글꼴은 더 안 씁니다. (편집기 UI 는 css/tokens.css 에서 따로 지정)
 
 export const THEMES = {
   /* 무채색. 어떤 게임 스크린샷 옆에 놓아도 튀지 않습니다.
@@ -56,26 +56,30 @@ export const THEMES = {
     plain:   true
   },
 
-  parchment: {
-    label: '중세·양피지',
-    bg:      '#1a1712',
-    panel:   '#221e17',
-    panel2:  '#2b2519',
-    accent:  '#c8973f',
-    accent2: '#8a6a2c',
-    ink:     '#ece7db',
-    ink2:    '#b3a894',
-    ink3:    '#867c69',
-    line:    '#3d3529',
-    edge:    '#4a4033',   // 카드 테두리
-    gutter:  '#0a0806',   // 카드 사이를 가르는 틈
-    ok:      '#8fb254',
-    warn:    '#d99a3a',
-    bad:     '#c26a63',
-    serif:   MYUNG,
-    display: `"Cinzel", ${MYUNG}`,
+  /* 흰 바탕. 검정 톤과 정반대라 스크린샷이 또렷하게 도드라집니다.
+     디시는 평소 흰 배경이라 카드가 배경에 묻힐 수 있어서,
+     테두리를 또렷하게 두고 카드 사이 틈도 짙은 회색으로 둡니다. */
+  paper: {
+    label: '밝은 (흰색)',
+    bg:      '#ffffff',
+    panel:   '#f4f4f5',
+    panel2:  '#e9e9ec',
+    accent:  '#1a1a1c',
+    accent2: '#c2c2c8',
+    ink:     '#141416',
+    ink2:    '#4a4a52',
+    ink3:    '#7c7c86',
+    line:    '#dcdce1',
+    edge:    '#c8c8cf',   // 흰 배경 위에서도 카드 경계가 보이는 선
+    gutter:  '#9a9aa2',   // 카드 사이를 가르는 틈
+    // 흰 바탕에서는 밝은 색이 안 읽혀서 어둡게 내렸습니다.
+    ok:      '#3f7a3a',
+    warn:    '#9a7420',
+    bad:     '#a8403a',
+    serif:   SANS,
+    display: SANS,
     sans:    SANS,
-    plain:   false
+    plain:   true
   }
 };
 

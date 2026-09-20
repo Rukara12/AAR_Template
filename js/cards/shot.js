@@ -18,7 +18,7 @@ export default {
   fields: [
     { k: 'img', t: 'image', label: '스크린샷', tf: 'imgTf', ratioKey: 'ratio' },
     { k: 'ratio', t: 'select', label: '자를 비율', opts: RATIO_OPTS },
-    { k: 'caption', t: 'textarea', label: '자막', rows: 3, ph: '여기서부터 진짜 재밌어진다' },
+    { k: 'caption', t: 'textarea', label: '자막', rows: 3, ph: '초반 튜토리얼 구간' },
     { k: 'capPos',  t: 'select',   label: '자막 위치', opts: [['below', '사진 아래'], ['over', '사진 위에 겹치기']] },
     { k: 'align',   t: 'select',   label: '자막 정렬', opts: [['center', '가운데'], ['left', '왼쪽']] }
   ],

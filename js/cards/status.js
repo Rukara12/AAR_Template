@@ -35,7 +35,7 @@ export default {
     { k: 'heading', t: 'text',     label: '소제목', ph: '게임 정보' },
     { k: 'stats',   t: 'pairs',    label: '항목', a: '항목', b: '값', add: '항목 추가' },
     { k: 'summary', t: 'textarea', label: '한 줄 소개', rows: 3,
-      ph: '작은 마을 하나 굴려 나가는 경영 시뮬. 생각보다 훨씬 빡세다.' }
+      ph: '마을을 운영하는 경영 시뮬레이션.' }
   ],
 
   label: c => c.heading || '게임 정보',

@@ -25,7 +25,7 @@ export default {
     { k: 'cols',  t: 'select', label: '한 줄에', opts: [['2', '2장'], ['3', '3장']] },
     { k: 'ratio', t: 'select', label: '자를 비율', opts: RATIO_OPTS.filter(o => o[0] !== 'auto') },
     ...SLOTS.map(i => ({ k: `img${i}`, t: 'image', label: `${i}번 이미지`, tf: `tf${i}`, ratioKey: 'ratio' })),
-    { k: 'caption', t: 'textarea', label: '자막', rows: 2, ph: '분위기 하나는 진짜 잘 뽑았다' }
+    { k: 'caption', t: 'textarea', label: '자막', rows: 2, ph: '지역마다 분위기가 다르다' }
   ],
 
   label: c => `스샷 ${SLOTS.filter(i => c[`img${i}`]).length}장`,
