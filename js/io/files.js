@@ -14,7 +14,7 @@ const JPEG_Q = 0.95;
  * 디시는 파일명이 한글·영문·숫자가 아니면 업로드가 깨질 수 있습니다.
  * 그 외 문자는 밑줄로 바꿉니다.
  */
-export function safeName(s, fallback = '연재') {
+export function safeName(s, fallback = '리뷰') {
   const out = String(s ?? '')
     .replace(/[^가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z0-9]+/g, '_')
     .replace(/_+/g, '_')
@@ -31,14 +31,15 @@ export function readImageFile(file) {
     fr.onload = () => {
       const im = new Image();
       im.onerror = () => reject(new Error('이미지를 열지 못했습니다.'));
-      im.onload = () => resolve(shrink(im));
+      im.onload = () => resolve(shrinkImage(im));
       im.src = fr.result;
     };
     fr.readAsDataURL(file);
   });
 }
 
-function shrink(im) {
+/** 원본이 너무 크면 보관 한도에 맞춰 줄이고 dataURL 로 바꿉니다. */
+export function shrinkImage(im) {
   const s = Math.min(1, MAX_W / im.naturalWidth, MAX_H / im.naturalHeight);
   const w = Math.round(im.naturalWidth * s);
   const h = Math.round(im.naturalHeight * s);
@@ -63,17 +64,26 @@ function hasAlpha(ctx, w, h) {
   return false;
 }
 
-/** 클립보드·드롭 이벤트에서 첫 이미지 파일을 꺼냅니다. */
-export function firstImageFrom(dt) {
-  if (!dt) return null;
+/** 클립보드·드롭 이벤트에서 이미지 파일을 전부 꺼냅니다. */
+export function allImagesFrom(dt) {
+  if (!dt) return [];
+  const out = [];
   if (dt.files?.length) {
-    for (const f of dt.files) if (f.type.startsWith('image/')) return f;
+    for (const f of dt.files) if (f.type.startsWith('image/')) out.push(f);
   }
-  if (dt.items?.length) {
-    for (const it of dt.items) if (it.kind === 'file' && it.type.startsWith('image/')) return it.getAsFile();
+  if (!out.length && dt.items?.length) {
+    for (const it of dt.items) {
+      if (it.kind === 'file' && it.type.startsWith('image/')) {
+        const f = it.getAsFile();
+        if (f) out.push(f);
+      }
+    }
   }
-  return null;
+  return out;
 }
+
+/** 첫 이미지 파일 하나만 */
+export const firstImageFrom = dt => allImagesFrom(dt)[0] || null;
 
 /** 저장 형식. webp 는 디시의 강제 리사이즈를 통과합니다. */
 export const FORMATS = {

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>게임 리뷰 템플릿 — 커뮤니티용 이미지 생성기</title>
-<meta name="description" content="디시인사이드에 올릴 게임 리뷰·연재 이미지를 카드 단위로 조립해 만드는 도구">
+<meta name="description" content="디시인사이드에 올릴 게임 리뷰 이미지를 카드 단위로 조립해 만드는 도구">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Nanum+Myeongjo:wght@400;700;800&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
@@ -17,20 +17,17 @@
 <header id="top">
   <span class="brand">리뷰 템플릿</span>
 
-  <label class="titlefield">
-    <input id="mSeries" placeholder="게임 제목">
-    <span class="chap" title="연재라면 회차를 적으세요. 비워 두면 안 씁니다.">
-      <input id="mChapter" type="number" min="0" placeholder="—" aria-label="회차 (연재일 때만)">
-      화
-    </span>
-  </label>
-
   <span class="sp"></span>
 
   <div class="uiscale" role="group" aria-label="화면 크기">
     <button type="button" id="uiDown" class="step" title="화면 작게" aria-label="화면 작게">−</button>
     <button type="button" id="uiLevel" class="level" title="눌러서 기본 크기로 되돌리기">100%</button>
     <button type="button" id="uiUp" class="step" title="화면 크게" aria-label="화면 크게">+</button>
+  </div>
+
+  <div class="uiscale" role="group" aria-label="되돌리기">
+    <button type="button" id="btnUndo" class="step" title="되돌리기 (Ctrl+Z)" aria-label="되돌리기">↶</button>
+    <button type="button" id="btnRedo" class="step" title="다시하기 (Ctrl+Shift+Z)" aria-label="다시하기">↷</button>
   </div>
 
   <span class="vline"></span>
@@ -44,11 +41,14 @@
       <select id="mTheme"></select>
     </label>
     <hr>
-    <button type="button" id="btnNew">새로 시작</button>
-    <button type="button" id="btnNext">다음 편 이어받기</button>
+    <button type="button" id="btnNew">새로 시작…</button>
+    <button type="button" id="btnShots">스샷 여러 장 넣기…</button>
     <hr>
+    <button type="button" id="btnLibrary">보관함…</button>
     <button type="button" id="btnLoad">프로젝트 불러오기</button>
     <button type="button" id="btnSave">프로젝트 저장 (Ctrl+S)</button>
+    <hr>
+    <button type="button" id="btnHelp">조작법 (?)</button>
   </div>
 </header>
 
@@ -56,21 +56,21 @@
 
   <div id="left">
     <section id="palette" aria-label="카드 팔레트">
-      <h3>카드 팔레트</h3>
+      <h3>카드 팔레트 <span class="beta">실험적</span></h3>
       <div id="ptiles"></div>
-      <p class="hint">타일을 아래 <b>문서 구성</b>으로 끌어다 놓으세요. 커서를 올리면 견본이 보입니다.</p>
+      <p class="hint">타일을 아래 <b>문서 구성</b>으로 끌어다 놓으세요. 커서를 올리면 견본이 보입니다.<br>
+      손이 많이 간 구성은 <b>리뷰 카드</b> 기본 구성입니다. 카드를 더 넣거나 빼는 것은 아직 다듬는 중입니다.</p>
     </section>
 
     <section id="rail" aria-label="문서 구성">
       <h3>문서 구성</h3>
       <div id="cardlist"></div>
-      <div id="emptyhint">여기로 카드를 끌어다 놓으세요</div>
+      <div id="emptyhint">여기로 카드를 끌어다 놓으세요<br>또는 이미지를 창에 떨어뜨리세요</div>
     </section>
   </div>
 
   <section id="stage" aria-label="미리보기">
     <div id="stageInner"></div>
-    <p id="stagemeta"></p>
   </section>
 
   <section id="insp" aria-label="카드 속성">

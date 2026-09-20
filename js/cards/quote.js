@@ -5,8 +5,8 @@ export default {
   id: 'quote',
   name: '인용 강조',
   desc: '큰 한 줄',
-  group: '연출',
-  accent: '#b3a894',
+  group: '곁들이기',
+  accent: '#9a9186',
 
   create: () => ({ body: '', by: '' }),
 

@@ -7,10 +7,18 @@ import { T } from '../theme.js';
 
 /** 디시인사이드는 가로 850px 를 넘으면 자동 리사이즈합니다. 절대 넘기지 않습니다. */
 export const W = 850;
-/** 카드 좌우 기본 여백 */
+/** 글의 좌우 기본 여백 */
 export const PAD = 46;
 /** 본문 가용 폭 */
 export const CW = W - PAD * 2;
+
+/**
+ * 사진이 카드 가장자리에서 떨어지는 거리.
+ * 모든 이미지 카드가 이 값 하나를 같이 써야 여백이 어긋나지 않습니다.
+ */
+export const FRAME = 24;
+/** 사진이 들어갈 수 있는 최대 폭 */
+export const FW = W - FRAME * 2;
 
 /* ── 측정 전용 컨텍스트 ─────────────────────────────────── */
 const mcv = document.createElement('canvas');
@@ -153,6 +161,21 @@ export function imageZone(k, tf, x, y, w, h) {
   return { kind: 'image', k, tf, x, y, w, h };
 }
 
+/**
+ * 좌우로 끌어서 숫자를 바꾸는 영역. (점수 막대 같은 것)
+ * 값은 min~max 로 잘리므로 만점을 넘는 숫자가 들어갈 수 없습니다.
+ */
+export function sliderZone(k, x, y, w, h, opt = {}) {
+  return {
+    kind: 'slider', k, x, y, w, h,
+    min: opt.min ?? 0,
+    max: opt.max ?? 10,
+    step: opt.step ?? 0.5,
+    index: opt.index,
+    sub: opt.sub
+  };
+}
+
 /** 자간을 벌린 한 줄 (라벨·소제목용) */
 export function spacedText(ctx, str, x, y, gap, align = 'left', boxW = CW) {
   const chars = [...String(str)];
@@ -253,6 +276,13 @@ export function containImage(ctx, im, x, y, w, h) {
   const s = Math.min(w / im.naturalWidth, h / im.naturalHeight);
   const dw = im.naturalWidth * s, dh = im.naturalHeight * s;
   ctx.drawImage(im, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
+}
+
+/** 사진 둘레의 얇은 선. 모든 이미지 카드가 이걸 씁니다. */
+export function imageEdge(ctx, x, y, w, h) {
+  ctx.strokeStyle = T.line;
+  ctx.lineWidth = 1;
+  ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
 }
 
 /** 이미지가 아직 없을 때 자리 표시 */

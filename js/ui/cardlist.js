@@ -1,10 +1,12 @@
 /**
- * 가운데 "회차 구성" 목록.
+ * 왼쪽 "문서 구성" 목록.
  * · 팔레트에서 끌어다 놓으면 그 자리에 추가
  * · 목록 안에서 끌면 순서 변경
+ * · Ctrl·Shift 클릭으로 여러 장 고르기
  */
-import { BY_ID } from '../cards/registry.js';
-import { state, addCard, moveCard, removeCard, duplicateCard, select } from '../state.js';
+import { BY_ID, groupColorOf } from '../cards/registry.js';
+import { state, addCard, moveCard, removeCard, removeCards, duplicateCard,
+         select, toggleSelect, selectRange, isSelected } from '../state.js';
 import { DRAG_TYPE } from './palette.js';
 
 const INDEX_TYPE = 'application/x-card-index';
@@ -70,6 +72,20 @@ function showMarker(at) {
   else listEl.insertBefore(marker, rows[at]);
 }
 
+/**
+ * 목록에 곁들이는 한 줄.
+ * 이 목록은 «무엇이 어떤 차례로 있는지» 보는 곳이지 내용을 읽는 곳이 아닙니다.
+ * 적은 내용을 그대로 흘리면 카드마다 길이가 들쭉날쭉해져서 구성이 안 보입니다.
+ * 그래서 줄바꿈을 없애고 짧게 잘라 둡니다. 전체는 커서를 올리면 보입니다.
+ */
+const HINT_MAX = 20;
+function hintOf(def, card) {
+  const raw = String(def?.label(card) ?? '').replace(/\s+/g, ' ').trim();
+  // 카드 종류 이름을 그대로 되뇌는 것은 (빈 카드일 때) 적을 이유가 없습니다.
+  if (!raw || raw === def?.name) return '';
+  return raw.length > HINT_MAX ? `${raw.slice(0, HINT_MAX)}…` : raw;
+}
+
 export function renderCardList() {
   listEl.innerHTML = '';
   document.getElementById('emptyhint').style.display = state.cards.length ? 'none' : '';
@@ -77,24 +93,36 @@ export function renderCardList() {
   state.cards.forEach((card, i) => {
     const def = BY_ID[card.type];
     const el = document.createElement('div');
-    el.className = 'citem' + (card.id === state.selId ? ' sel' : '');
+    el.className = 'citem' + (isSelected(card.id) ? ' sel' : '');
     el.draggable = true;
-    el.style.borderLeftColor = def?.accent || 'var(--line)';
+    el.dataset.type = card.type;
+    el.style.borderLeftColor = groupColorOf(card.type);
     el.innerHTML = `
       <span class="no"></span>
-      <span class="lb"></span>
       <span class="ty"></span>
+      <span class="lb"></span>
       <button class="mini" data-act="dup" title="복제">⧉</button>
       <button class="mini" data-act="del" title="삭제">✕</button>`;
     el.querySelector('.no').textContent = i + 1;
-    el.querySelector('.lb').textContent = (def?.label(card) || '').trim() || def?.name || card.type;
     el.querySelector('.ty').textContent = def?.name || card.type;
+
+    const hint = hintOf(def, card);
+    el.querySelector('.lb').textContent = hint;
+    if (hint) el.title = `${def?.name}\n${String(def.label(card)).trim()}`;
 
     el.addEventListener('click', e => {
       const act = e.target.dataset?.act;
-      if (act === 'del') { e.stopPropagation(); removeCard(card.id); return; }
+      if (act === 'del') {
+        e.stopPropagation();
+        if (isSelected(card.id) && state.selIds.length > 1) removeCards(state.selIds);
+        else removeCard(card.id);
+        return;
+      }
       if (act === 'dup') { e.stopPropagation(); duplicateCard(card.id); return; }
-      select(card.id);
+
+      if (e.shiftKey) selectRange(card.id);
+      else if (e.ctrlKey || e.metaKey) toggleSelect(card.id);
+      else select(card.id);
     });
 
     el.addEventListener('dragstart', e => {

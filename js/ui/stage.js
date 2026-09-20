@@ -5,21 +5,21 @@
  * 카드 목록이 그대로면 요소를 새로 만들지 않고 그림만 갱신합니다.
  * 그래야 열려 있는 글 입력칸이 사라지지 않습니다.
  */
-import { state } from '../state.js';
+import { state, isSelected, removeCard } from '../state.js';
 import { renderInto } from '../canvas/render.js';
 import { W } from '../canvas/layout.js';
 import { currentScale } from './uiscale.js';
-import { attachDirect, syncEditor, closeEditor } from './direct.js';
+import { attachDirect, syncEditor, syncZoneDels, closeEditor } from './direct.js';
 
 let timer = null;
 const nodes = new Map();   // cardId → { wrap, cv }
 
-export function renderStage(root, metaEl) {
+export function renderStage(root) {
   clearTimeout(timer);
-  timer = setTimeout(() => draw(root, metaEl), 70);
+  timer = setTimeout(() => draw(root), 70);
 }
 
-function draw(root, metaEl) {
+function draw(root) {
   const ids = state.cards.map(c => c.id).join(',');
   const sameShape = root.dataset.ids === ids;
 
@@ -30,7 +30,6 @@ function draw(root, metaEl) {
     </div>`;
     root.dataset.ids = '';
     nodes.clear();
-    metaEl.textContent = '';
     return;
   }
 
@@ -41,7 +40,6 @@ function draw(root, metaEl) {
   // 내보낼 때는 따로 다시 그리므로 결과물에는 영향이 없습니다.
   const ss = Math.min(2, Math.max(1, currentScale()));
 
-  let total = 0;
   state.cards.forEach((card, i) => {
     let node = nodes.get(card.id);
 
@@ -50,8 +48,18 @@ function draw(root, metaEl) {
       wrap.className = 'shot';
       const no = document.createElement('span');
       no.className = 'shotno';
+
+      // 지우기 단추. 캔버스가 아니라 그 위에 얹는 요소라 결과물에는 안 나갑니다.
+      const del = document.createElement('button');
+      del.type = 'button';
+      del.className = 'shotdel';
+      del.textContent = '✕';
+      del.title = '이 카드 지우기';
+      del.setAttribute('aria-label', '이 카드 지우기');
+      del.addEventListener('click', e => { e.stopPropagation(); removeCard(card.id); });
+
       const cv = document.createElement('canvas');
-      wrap.append(no, cv);
+      wrap.append(no, cv, del);
       root.appendChild(wrap);
       attachDirect(wrap, cv, card.id);
       node = { wrap, cv, no };
@@ -61,12 +69,11 @@ function draw(root, metaEl) {
     renderInto(node.cv, card, ss);
     node.cv.style.width = `${W}px`;
     node.no.textContent = i + 1;
-    node.wrap.classList.toggle('sel', card.id === state.selId);
+    node.wrap.classList.toggle('sel', isSelected(card.id));
     syncEditor(card.id, node.cv);
-    total += node.cv.logicalHeight;
+    syncZoneDels(node.cv);
   });
 
-  metaEl.textContent = `카드 ${state.cards.length}장 · 이어 붙인 높이 ${total.toLocaleString()}px (850px 기준)`;
 }
 
 /** 카드 목록에서 고른 카드를 화면 안으로 끌어옵니다. */

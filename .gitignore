@@ -1,5 +1,6 @@
 # 로컬 확인용 스크립트 (개인 환경용, 배포와 무관)
 serve.bat
+serve.py
 
 # OS / 편집기
 Thumbs.db

@@ -1,6 +1,6 @@
 import { T } from '../theme.js';
 import { W, PAD, text, font, roundRect, rule, textZone, imageZone,
-         imgOf, isReady, placeImage, placeholder } from '../canvas/layout.js';
+         imgOf, isReady, placeImage, placeholder, imageEdge } from '../canvas/layout.js';
 
 const PW = 172;
 const PH = 210;
@@ -66,9 +66,7 @@ export default {
         ctx.fillRect(px, py, PW, PH);
         if (isReady(im)) placeImage(ctx, im, px, py, PW, PH, c.portraitTf);
         else placeholder(ctx, px, py, PW, PH, '캐릭터');
-        ctx.strokeStyle = T.accent2;
-        ctx.lineWidth = 2;
-        ctx.strokeRect(px + 1, py + 1, PW - 2, PH - 2);
+        imageEdge(ctx, px, py, PW, PH);
 
         if (!nameT.empty) nameT.paint(ctx, tx, yName);
         if (!roleT.empty) roleT.paint(ctx, tx, yRole);

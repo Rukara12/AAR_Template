@@ -1,31 +1,48 @@
 import { T } from '../theme.js';
 import { W, PAD, CW, text, font, spacedText, rule, textZone, mctx } from '../canvas/layout.js';
 
-const COLS = 4;
+/* 스팀 상점 정보 상자처럼 «항목  값» 을 한 줄에 놓고 두 단으로 나눕니다. */
+const COLS = 2;
+const COL_GAP = 28;
+const CELL_W = Math.floor((CW - COL_GAP) / COLS);
+const LABEL_W = 104;
+const ROW_H = 42;
 
 export default {
   id: 'status',
   name: '게임 정보',
   desc: '개발사 · 장르 · 가격',
-  group: '정보',
-  accent: '#d99a3a',
+  group: '시작',
+  accent: '#c8973f',
 
   create: () => ({
     heading: '게임 정보',
     stats: [
-      { l: '개발사', v: '' }, { l: '장르', v: '' },
-      { l: '플랫폼', v: '' }, { l: '가격', v: '' },
-      { l: '플레이 시간', v: '' }, { l: '출시', v: '' }
+      { l: '개발자', v: '' },      // 스팀 상점 정보 상자
+      { l: '장르', v: '' },        // 직접 작성
+      { l: '출시일', v: '' },      // 스팀 상점 정보 상자
+      { l: '가격', v: '' },        // 최대 할인가 기준
+      { l: '최근 평가', v: '' },   // 스팀 상점 정보 상자
+      { l: '한국어 평가', v: '' }  // 스팀 상점 정보 상자
     ],
     summary: ''
   }),
 
   fields: [
+    { k: '', t: 'fetch', label: '스팀 상점 주소',
+      ph: 'store.steampowered.com/app/… 또는 앱 번호',
+      note: '누르면 이 카드의 항목과 표지 사진·제목까지 한꺼번에 채웁니다.' },
     { k: 'heading', t: 'text',     label: '소제목', ph: '게임 정보' },
     { k: 'stats',   t: 'pairs',    label: '항목', a: '항목', b: '값', add: '항목 추가' },
     { k: 'summary', t: 'textarea', label: '한 줄 소개', rows: 3,
       ph: '작은 마을 하나 굴려 나가는 경영 시뮬. 생각보다 훨씬 빡세다.' },
-    { k: '', t: 'note', text: '리뷰 앞쪽에 한 장 두면 어떤 게임인지 바로 전달됩니다. 연재라면 스탯 요약판으로 써도 됩니다.' }
+    { k: '', t: 'note', text: '리뷰 앞쪽에 한 장 두면 어떤 게임인지 바로 전달됩니다.' },
+    { k: '', t: 'fold', label: '안 받아질 때', fields: [
+      { k: '', t: 'paste', label: '상점 페이지 긁어서 붙여넣기',
+        ph: '상점 페이지에서 끌어 복사한 뒤 여기에 붙여넣으세요 (Ctrl+V)',
+        note: '가져오기가 안 되면 이 방법이 항상 됩니다. 상점 페이지 오른쪽 정보 상자와 가격까지 긁어서 붙여넣으세요.' },
+      { k: '', t: 'note', text: '직접 적을 때는 스팀 상점 페이지 오른쪽 정보 상자를 보세요. 항목은 «항목 추가»로 얼마든지 늘릴 수 있습니다.' }
+    ] }
   ],
 
   label: c => c.heading || '게임 정보',
@@ -33,15 +50,14 @@ export default {
   build(c) {
     const stats = (c.stats || []).filter(s => s.l || s.v);
     const rows = Math.ceil(stats.length / COLS);
-    const cellW = Math.floor(CW / COLS);
-    const rowH = 64;
+    const valW = CELL_W - LABEL_W;
 
-    // 값이 칸보다 길면 글자를 줄여서 옆 칸을 침범하지 않게 합니다.
+    // 값이 칸보다 길면 글자를 줄여서 옆 단을 침범하지 않게 합니다.
     const valSize = stats.map(s => {
-      let size = 27;
-      while (size > 15) {
+      let size = 19;
+      while (size > 12) {
         font(mctx, size, 700, T.serif);
-        if (mctx.measureText(String(s.v ?? '')).width <= cellW - 12) break;
+        if (mctx.measureText(String(s.v ?? '')).width <= valW - 8) break;
         size -= 1;
       }
       return size;
@@ -50,22 +66,30 @@ export default {
     const sum = text(c.summary, { size: 17, color: T.ink2, maxW: CW, lh: 30 });
     const top = 30;
     const headH = c.heading ? 30 : 0;
-    const gridH = rows * rowH;
+    const gridH = rows * ROW_H;
     const sumH = sum.empty ? 0 : sum.h + 22;
     const h = top + headH + gridH + sumH + 30;
-    const ySum = top + headH + gridH + 16;
+
+    const yGrid = top + headH;
+    const ySum = yGrid + gridH + 16;
+
+    // 왼쪽 단부터 세로로 채웁니다. (스팀 정보 상자를 두 줄로 쪼갠 모양)
+    const posOf = i => ({
+      x: PAD + Math.floor(i / rows) * (CELL_W + COL_GAP),
+      y: yGrid + (i % rows) * ROW_H
+    });
 
     return {
       h,
       zones: [
         textZone('heading', text(c.heading, { size: 13, lh: 22 }), PAD, top, { w: 260 }),
-        // 스탯 한 칸 한 칸도 그 자리에서 고칠 수 있게 합니다.
         ...stats.flatMap((s, i) => {
-          const cx = PAD + (i % COLS) * cellW;
-          const cy = top + headH + Math.floor(i / COLS) * rowH;
+          const p = posOf(i);
           return [
-            textZone('stats', text(s.l, { size: 13, color: T.ink3, lh: 20 }), cx, cy, { w: cellW - 8, index: i, sub: 'l' }),
-            textZone('stats', text(s.v, { size: valSize[i], weight: 700, lh: 36 }), cx, cy + 22, { w: cellW - 8, index: i, sub: 'v' })
+            textZone('stats', text(s.l, { size: 15, color: T.ink3, lh: 24 }),
+                     p.x, p.y + 8, { w: LABEL_W - 8, index: i, sub: 'l' }),
+            textZone('stats', text(s.v, { size: valSize[i], weight: 700, lh: 26 }),
+                     p.x + LABEL_W, p.y + 6, { w: valW, index: i, sub: 'v' })
           ];
         }),
         textZone('summary', sum, PAD, ySum, { multiline: true })
@@ -73,32 +97,30 @@ export default {
       paint(ctx) {
         ctx.fillStyle = T.panel;
         ctx.fillRect(0, 0, W, h);
-        ctx.strokeStyle = T.accent2;
-        ctx.lineWidth = 1;
-        ctx.strokeRect(14.5, 14.5, W - 29, h - 29);
 
-        let y = top;
         if (c.heading) {
           font(ctx, 13, 700, T.sans);
           ctx.fillStyle = T.accent;
-          spacedText(ctx, c.heading, PAD, y + 13, 3, 'left', CW);
-          y += 30;
+          spacedText(ctx, c.heading, PAD, top + 13, 3, 'left', CW);
         }
 
         stats.forEach((s, i) => {
-          const cx = PAD + (i % COLS) * cellW;
-          const cy = y + Math.floor(i / COLS) * rowH;
-          font(ctx, 13, 400, T.sans);
+          const p = posOf(i);
+
+          // 행 사이 옅은 선. 표처럼 읽히게 해 줍니다.
+          if (i % rows < rows - 1) rule(ctx, p.x, p.y + ROW_H - 1, CELL_W, T.line);
+
+          font(ctx, 15, 400, T.sans);
           ctx.fillStyle = T.ink3;
-          ctx.fillText(s.l || '', cx, cy + 16);
+          ctx.fillText(s.l || '', p.x, p.y + 26);
+
           font(ctx, valSize[i], 700, T.serif);
           ctx.fillStyle = T.ink;
-          ctx.fillText(s.v || '', cx, cy + 48);
+          ctx.fillText(s.v || '', p.x + LABEL_W, p.y + 27);
         });
-        y += gridH;
 
         if (!sum.empty) {
-          rule(ctx, PAD, y + 2, CW, T.line);
+          rule(ctx, PAD, yGrid + gridH + 2, CW, T.line);
           sum.paint(ctx, PAD, ySum);
         }
       }

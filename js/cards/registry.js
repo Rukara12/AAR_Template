@@ -11,7 +11,7 @@
  *     id      : 'shot',                       고유 키 (저장 파일에 기록됨. 바꾸지 마세요)
  *     name    : '자막 스샷',                   팔레트에 뜨는 이름
  *     desc    : '스샷 + 자막',                 팔레트 설명 한 줄
- *     group   : '이미지',                      팔레트 묶음
+ *     group   : '본문',                        팔레트 묶음 — 시작 / 본문 / 평가 / 곁들이기 / 캐릭터
  *     accent  : '#8fb254',                    목록에서 쓰는 표시색
  *     create(): {...}                         새로 만들 때의 기본값
  *     fields  : [...]                         편집 폼 스키마 (ui/inspector.js 참고)
@@ -24,26 +24,40 @@
  */
 
 import cover    from './cover.js';
-import text     from './text.js';
-import verdict  from './verdict.js';
-import shot     from './shot.js';
-import image    from './image.js';
-import compare  from './compare.js';
 import status   from './status.js';
+import shot     from './shot.js';
+import text     from './text.js';
+import section  from './section.js';
+import grid     from './grid.js';
+import compare  from './compare.js';
 import score    from './score.js';
 import proscons from './proscons.js';
-import dialogue from './dialogue.js';
-import profile  from './profile.js';
+import verdict  from './verdict.js';
 import quote    from './quote.js';
 import divider  from './divider.js';
+import dialogue from './dialogue.js';
+import profile  from './profile.js';
 
+/**
+ * 팔레트에 뜨는 순서 = 리뷰에서 놓이는 순서.
+ * 위에서 아래로 훑으면 한 편이 그대로 완성되도록 묶고 정렬했습니다.
+ * 각 묶음 안에서는 자주 쓰는 것부터 둡니다.
+ */
 export const LIST = [
-  cover, text, verdict,
-  shot, image, compare,
-  status, score, proscons,
-  dialogue, profile,
-  quote, divider
+  // 시작 — 리뷰 맨 앞
+  cover, status,
+  // 본문 — 실제로 가장 많이 찍어 내는 것들
+  shot, text, section, grid, compare,
+  // 평가 — 리뷰의 결론부
+  score, proscons, verdict,
+  // 곁들이기 — 필요할 때만
+  quote, divider,
+  // 캐릭터
+  dialogue, profile
 ];
+
+/** 처음에 접어 두는 묶음. 자주 안 쓰는 것들을 숨겨 팔레트를 짧게 유지합니다. */
+export const DEFAULT_COLLAPSED = ['캐릭터'];
 
 export const BY_ID = Object.fromEntries(LIST.map(c => [c.id, c]));
 
@@ -52,11 +66,23 @@ export const GROUPS = (() => {
   const g = [];
   for (const c of LIST) {
     let row = g.find(x => x.name === c.group);
-    if (!row) { row = { name: c.group, items: [] }; g.push(row); }
+    if (!row) {
+      row = { name: c.group, items: [], collapsed: DEFAULT_COLLAPSED.includes(c.group) };
+      g.push(row);
+    }
     row.items.push(c);
   }
   return g;
 })();
+
+/**
+ * 문서 구성 목록에서 쓰는 색. 카드마다 다른 색을 쓰면 열네 가지가 되어 어지럽습니다.
+ * 묶음마다 한 색으로 묶어서, 목록만 봐도 «시작 / 본문 / 평가» 가 덩어리로 보이게 합니다.
+ */
+export const groupColorOf = typeId => {
+  const g = GROUPS.find(x => x.items.some(c => c.id === typeId));
+  return g?.items[0]?.accent || 'var(--line)';
+};
 
 const uid = () => Math.random().toString(36).slice(2, 9);
 

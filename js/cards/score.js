@@ -1,5 +1,5 @@
 import { T } from '../theme.js';
-import { W, PAD, CW, text, font, spacedText, rule, roundRect, textZone } from '../canvas/layout.js';
+import { W, PAD, CW, text, font, spacedText, rule, roundRect, textZone, sliderZone } from '../canvas/layout.js';
 
 /* 왼쪽에 항목별 막대, 오른쪽에 총점. 서로 침범하지 않게 폭을 미리 나눠 둡니다. */
 const TOTAL_W = 176;
@@ -14,7 +14,7 @@ export default {
   id: 'score',
   name: '평점',
   desc: '항목별 점수',
-  group: '정보',
+  group: '평가',
   accent: '#d99a3a',
 
   create: () => ({
@@ -27,7 +27,8 @@ export default {
 
   fields: [
     { k: 'heading', t: 'text',   label: '소제목', ph: '평가' },
-    { k: 'rows',    t: 'pairs',  label: '항목별 점수', a: '항목', b: '점수', add: '항목 추가', numeric: true },
+    { k: 'rows',    t: 'pairs',  label: '항목별 점수', a: '항목', b: '점수', add: '항목 추가',
+      numeric: true, maxFrom: 'max' },
     { k: 'max',     t: 'number', label: '만점', min: 1, max: 100, step: 1 },
     { k: 'total',   t: 'text',   label: '총점 (비우면 평균)', ph: '7.8' },
     { k: 'note',    t: 'text',   label: '아래 한 줄', ph: '조작감만 손보면 진짜 물건이다' }
@@ -36,13 +37,20 @@ export default {
   label: c => c.heading || '평점',
 
   build(c) {
-    const rows = (c.rows || []).filter(r => r.l);
     const max = Math.max(1, +c.max || 10);
-    const avg = rows.length ? rows.reduce((a, r) => a + (+r.v || 0), 0) / rows.length : 0;
+    const rows = (c.rows || []).filter(r => r.l);
+    // 만점을 넘는 값이 들어와도 만점으로 봅니다. 막대와 숫자가 따로 놀지 않게요.
+    const val = r => Math.max(0, Math.min(max, +r.v || 0));
+    const show = r => {
+      const v = val(r);
+      return Number.isInteger(v) ? String(v) : String(Math.round(v * 10) / 10);
+    };
+
+    const avg = rows.length ? rows.reduce((a, r) => a + val(r), 0) / rows.length : 0;
     const total = String(c.total || Math.round(avg * 10) / 10);
 
     const rowT = rows.map(r => text(r.l, { size: 18, color: T.ink2, maxW: LABEL_W - 10, lh: 26 }));
-    const valT = rows.map(r => text(String(r.v ?? ''), { size: 17, weight: 700, maxW: VAL_W, lh: 26 }));
+    const valT = rows.map(r => text(show(r), { size: 17, weight: 700, maxW: VAL_W, lh: 26 }));
     const totalT = text(total, { size: 58, weight: 800, color: T.accent, maxW: TOTAL_W, lh: 70, align: 'center' });
     const note = text(c.note, { size: 15, color: T.ink3, maxW: CW, lh: 26 });
 
@@ -66,16 +74,15 @@ export default {
                                        { w: LABEL_W - 10, index: i, sub: 'l' })),
         ...valT.map((t, i) => textZone('rows', t, xVal, yRows + i * ROW_H + 10,
                                        { w: VAL_W, index: i, sub: 'v' })),
+        // 막대를 좌우로 끌면 점수가 바뀝니다. 집기 쉽게 막대보다 두껍게 잡습니다.
+        ...rows.map((r, i) => sliderZone('rows', xBar, yRows + i * ROW_H + 8, BAR_W, 30,
+                                         { min: 0, max, step: 0.5, index: i, sub: 'v' })),
         textZone('total', totalT, xTotal, yTotal, { w: TOTAL_W }),
         textZone('note', note, PAD, top + headH + bodyH + 8)
       ],
       paint(ctx) {
         ctx.fillStyle = T.panel;
         ctx.fillRect(0, 0, W, h);
-        ctx.strokeStyle = T.line;
-        ctx.lineWidth = 1;
-        ctx.strokeRect(14.5, 14.5, W - 29, h - 29);
-
         if (c.heading) {
           font(ctx, 13, 700, T.sans);
           ctx.fillStyle = T.accent;
@@ -84,14 +91,14 @@ export default {
 
         rows.forEach((r, i) => {
           const y = yRows + i * ROW_H;
-          const v = Math.max(0, Math.min(max, +r.v || 0));
+          const v = val(r);
           rowT[i].paint(ctx, PAD, y + 10);
 
           const by = y + 21;
           ctx.fillStyle = T.panel2;
           roundRect(ctx, xBar, by, BAR_W, 8, 4);
           ctx.fill();
-          ctx.fillStyle = v / max >= 0.75 ? T.ok : v / max >= 0.45 ? T.accent : T.bad;
+          ctx.fillStyle = v / max >= 0.75 ? T.ok : v / max >= 0.45 ? T.warn : T.bad;
           roundRect(ctx, xBar, by, Math.max(4, (BAR_W * v) / max), 8, 4);
           ctx.fill();
 

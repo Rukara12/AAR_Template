@@ -7,7 +7,7 @@ export default {
   id: 'proscons',
   name: '장단점',
   desc: '좋은 점 / 아쉬운 점',
-  group: '정보',
+  group: '평가',
   accent: '#d99a3a',
 
   create: () => ({

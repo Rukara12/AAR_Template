@@ -9,20 +9,25 @@ const SANS  = '"Pretendard Variable", Pretendard, "Noto Sans KR", "Malgun Gothic
 const MYUNG = '"Nanum Myeongjo", Batang, "바탕", serif';
 
 export const THEMES = {
+  /* 무채색. 어떤 게임 스크린샷 옆에 놓아도 튀지 않습니다.
+     강조색을 따로 두지 않고 흰색으로 대신합니다. */
   basic: {
-    label: '기본',
-    bg:      '#14161a',
-    panel:   '#1c1f25',
-    panel2:  '#252932',
-    accent:  '#5cb4e4',
-    accent2: '#31677f',
-    ink:     '#e9ecf1',
-    ink2:    '#b6bcc7',
-    ink3:    '#8b93a1',
-    line:    '#2f343d',
-    ok:      '#7ec27a',
-    warn:    '#e0a94a',
-    bad:     '#e0736c',
+    label: '기본 (검정)',
+    bg:      '#0f0f10',
+    panel:   '#171719',
+    panel2:  '#212124',
+    accent:  '#f0f0f1',
+    accent2: '#48484d',
+    ink:     '#f2f2f3',
+    ink2:    '#b4b4b8',
+    ink3:    '#86868b',
+    line:    '#2a2a2d',
+    edge:    '#34343a',   // 카드 테두리 — 밝히면 흰 선처럼 튑니다
+    gutter:  '#000000',   // 카드 사이를 가르는 틈
+    // 점수·장단점에서 의미는 살리되, 검정 위에서 튀지 않게 채도를 낮췄습니다.
+    ok:      '#8fae86',
+    warn:    '#b9a173',
+    bad:     '#b8817c',
     serif:   SANS,
     display: SANS,
     sans:    SANS,
@@ -40,6 +45,8 @@ export const THEMES = {
     ink2:    '#c2b7a8',
     ink3:    '#948877',
     line:    '#3a332b',
+    edge:    '#453b30',   // 카드 테두리
+    gutter:  '#0b0908',   // 카드 사이를 가르는 틈
     ok:      '#93c46a',
     warn:    '#e8b45a',
     bad:     '#e0796c',
@@ -60,6 +67,8 @@ export const THEMES = {
     ink2:    '#b3a894',
     ink3:    '#867c69',
     line:    '#3d3529',
+    edge:    '#4a4033',   // 카드 테두리
+    gutter:  '#0a0806',   // 카드 사이를 가르는 틈
     ok:      '#8fb254',
     warn:    '#d99a3a',
     bad:     '#c26a63',

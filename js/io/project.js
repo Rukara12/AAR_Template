@@ -1,63 +1,75 @@
-/** 자동 저장(브라우저)과 프로젝트 파일 저장·불러오기. */
-import { state, toJSON, fromJSON } from '../state.js';
+/** 자동 저장, 보관함, 프로젝트 파일 저장·불러오기. */
+import { state, toJSON, toDoc, fromJSON } from '../state.js';
 import { downloadText, safeName } from './files.js';
 import { toast } from '../ui/toast.js';
+import * as store from './store.js';
 
-const KEY = 'aar-template/v1';
 let timer = null;
 let warned = false;
 
-/** 변경 후 잠시 뒤 브라우저에 저장합니다. */
+/**
+ * 파일·보관함 이름.
+ * 제목을 따로 받지 않으므로, 없으면 날짜를 붙여 서로 구분되게 합니다.
+ */
+const docName = () => {
+  const d = new Date();
+  const p = x => String(x).padStart(2, '0');
+  return safeName(state.meta.series, '')
+      || `리뷰_${String(d.getFullYear()).slice(2)}${p(d.getMonth() + 1)}${p(d.getDate())}`;
+};
+
+/* ── 자동 저장 ──────────────────────────────────────────── */
 export function autosave() {
   clearTimeout(timer);
-  timer = setTimeout(save, 700);
-}
-
-function save() {
-  try {
-    localStorage.setItem(KEY, toJSON());
-    warned = false;
-  } catch {
-    // 이미지가 많으면 용량을 넘길 수 있습니다. 이미지를 뺀 뼈대만 남깁니다.
+  timer = setTimeout(async () => {
     try {
-      const light = JSON.parse(toJSON());
-      light.cards = light.cards.map(c => {
-        const o = { ...c };
-        for (const k of Object.keys(o)) if (typeof o[k] === 'string' && o[k].startsWith('data:image')) o[k] = null;
-        return o;
-      });
-      light.stripped = true;
-      localStorage.setItem(KEY, JSON.stringify(light));
+      await store.put({ id: store.CURRENT, name: docName(), doc: toDoc() });
+      warned = false;
+    } catch (e) {
       if (!warned) {
         warned = true;
-        toast('이미지가 많아 자동 저장에는 글만 담겼습니다. 프로젝트 저장으로 파일에 보관하세요.', 4200);
+        toast('자동 저장에 실패했습니다. 프로젝트 저장으로 파일에 보관해 주세요.', 4200);
       }
-    } catch { /* 자동 저장 포기 */ }
-  }
+    }
+  }, 700);
 }
 
 /** 앱을 켤 때 마지막 작업을 되살립니다. */
-export function restore() {
+export async function restore() {
   try {
-    const raw = localStorage.getItem(KEY);
-    if (!raw) return false;
-    fromJSON(raw);
+    const rec = await store.get(store.CURRENT);
+    if (!rec?.doc) return false;
+    fromJSON(rec.doc);
     return true;
   } catch {
     return false;
   }
 }
 
-export function clearSaved() {
-  try { localStorage.removeItem(KEY); } catch { /* noop */ }
+/* ── 보관함 ─────────────────────────────────────────────── */
+export const listSaved = () => store.list();
+
+export async function saveToLibrary(name) {
+  const label = (name || '').trim() || docName();
+  await store.put({ id: store.newId(), name: label, doc: toDoc() });
+  toast(`보관함에 "${label}" 로 담았습니다.`);
 }
 
+export async function loadFromLibrary(id) {
+  const rec = await store.get(id);
+  if (!rec?.doc) return toast('불러오지 못했습니다.');
+  fromJSON(rec.doc);
+  toast(`"${rec.name}" 을 불러왔습니다.`);
+}
+
+export async function deleteFromLibrary(id) {
+  await store.remove(id);
+}
+
+/* ── 파일로 주고받기 ────────────────────────────────────── */
 export function exportProject() {
-  const n = +state.meta.chapter;
-  const base = safeName(state.meta.series, '리뷰');
-  const name = `${n > 0 ? `${base}_${n}화` : base}.json`;
-  downloadText(toJSON(), name);
-  toast(`${name} 저장했습니다.`);
+  downloadText(toJSON(), `${docName()}.json`);
+  toast(`${docName()}.json 저장했습니다.`);
 }
 
 export function importProject(file) {

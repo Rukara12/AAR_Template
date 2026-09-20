@@ -1,5 +1,5 @@
 import { T } from '../theme.js';
-import { W, PAD, text, textZone, imageZone, imgOf, isReady, placeImage, placeholder } from '../canvas/layout.js';
+import { W, PAD, text, textZone, imageZone, imgOf, isReady, placeImage, placeholder, imageEdge } from '../canvas/layout.js';
 
 const PW = 128;   // 초상화 폭
 const PH = 156;   // 초상화 높이
@@ -67,9 +67,7 @@ export default {
         ctx.fillRect(px, py, PW, PH);
         if (isReady(im)) placeImage(ctx, im, px, py, PW, PH, c.portraitTf);
         else placeholder(ctx, px, py, PW, PH, '캐릭터');
-        ctx.strokeStyle = T.accent;
-        ctx.lineWidth = 2;
-        ctx.strokeRect(px + 1, py + 1, PW - 2, PH - 2);
+        imageEdge(ctx, px, py, PW, PH);
 
         if (!nameT.empty) nameT.paint(ctx, tx, yName);
         if (!roleT.empty) roleT.paint(ctx, tx, yRole);

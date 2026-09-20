@@ -5,8 +5,8 @@ export default {
   id: 'text',
   name: '나레이션',
   desc: '본문 글',
-  group: '뼈대',
-  accent: '#b3a894',
+  group: '본문',
+  accent: '#8fb254',
 
   create: () => ({ heading: '', body: '', align: 'left', size: 20 }),
 

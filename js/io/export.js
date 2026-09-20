@@ -8,11 +8,12 @@ import { toast } from '../ui/toast.js';
 /** 디시 첨부 한 장 상한 */
 const LIMIT_MB = 20;
 
-/** 회차를 비워 두면 제목만 씁니다. (단일 리뷰) */
+/** 내보낸 파일 이름. 날짜로 서로 구분합니다. */
 const prefix = () => {
-  const t = safeName(state.meta.series, '리뷰');
-  const n = +state.meta.chapter;
-  return n > 0 ? `${t}_${n}화` : t;
+  const d = new Date();
+  const p = x => String(x).padStart(2, '0');
+  return safeName(state.meta.series, '')
+      || `리뷰_${String(d.getFullYear()).slice(2)}${p(d.getMonth() + 1)}${p(d.getDate())}`;
 };
 const pad = (n, len) => String(n).padStart(String(len).length, '0');
 const scale = () => Math.max(1, Math.min(4, +state.meta.outScale || 2));

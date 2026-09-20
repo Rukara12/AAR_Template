@@ -1,12 +1,13 @@
 import { T } from '../theme.js';
-import { W, PAD, CW, text, textZone, imageZone, imgOf, isReady, placeImage, placeholder } from '../canvas/layout.js';
+import { W, PAD, CW, FRAME, FW, text, textZone, imageZone,
+         imgOf, isReady, placeImage, placeholder, imageEdge } from '../canvas/layout.js';
 import { RATIO_OPTS, ratioOf } from './ratios.js';
 
 export default {
   id: 'shot',
   name: '자막 스샷',
   desc: '스샷 + 자막',
-  group: '이미지',
+  group: '본문',
   accent: '#8fb254',
 
   create: () => ({
@@ -18,7 +19,7 @@ export default {
     { k: 'img', t: 'image', label: '스크린샷', tf: 'imgTf', ratioKey: 'ratio' },
     { k: 'ratio', t: 'select', label: '자를 비율', opts: RATIO_OPTS },
     { k: 'caption', t: 'textarea', label: '자막', rows: 3, ph: '여기서부터 진짜 재밌어진다' },
-    { k: 'capPos',  t: 'select',   label: '자막 위치', opts: [['below', '이미지 아래'], ['over', '이미지 위에 겹치기']] },
+    { k: 'capPos',  t: 'select',   label: '자막 위치', opts: [['below', '사진 아래'], ['over', '사진 위에 겹치기']] },
     { k: 'align',   t: 'select',   label: '자막 정렬', opts: [['center', '가운데'], ['left', '왼쪽']] },
     { k: '', t: 'note', text: '가운데 미리보기에서 바로 끌어 옮기고 Alt+휠로 확대할 수 있습니다. 자막도 눌러서 그 자리에서 고칩니다.' }
   ],
@@ -34,45 +35,55 @@ export default {
 
   build(c) {
     const im = imgOf(c.img);
-    const imgH = Math.round(W / this.boxRatio(c));
-    const cap = text(c.caption, { size: 20, maxW: CW, lh: 34, align: c.align });
+    const imgH = Math.round(FW / this.boxRatio(c));
     const over = c.capPos === 'over';
-    const capBoxH = cap.empty ? 0 : cap.h + 30;
-    const h = imgH + (over ? 0 : capBoxH);
-    const yCap = over ? imgH - Math.max(capBoxH, 50) + 15 : imgH + 15;
+
+    const capW = over ? FW - 32 : CW;
+    const cap = text(c.caption, { size: 20, maxW: capW, lh: 34, align: c.align });
+    const capH = cap.empty ? 0 : cap.h;
+
+    // 사진은 카드 가장자리에서 FRAME 만큼 떨어뜨립니다. 모든 이미지 카드가 같은 값을 씁니다.
+    const h = FRAME + imgH + (over || cap.empty ? 0 : capH + 22) + FRAME;
+
+    const yCap = over
+      ? FRAME + imgH - capH - 20
+      : FRAME + imgH + 18;
+    const xCap = over ? FRAME + 16 : PAD;
 
     return {
       h,
       zones: [
-        imageZone('img', 'imgTf', 0, 0, W, imgH),
-        textZone('caption', cap, PAD, yCap, { multiline: true, bg: over ? 'rgba(0,0,0,.86)' : T.bg })
+        imageZone('img', 'imgTf', FRAME, FRAME, FW, imgH),
+        textZone('caption', cap, xCap, yCap, { w: capW, multiline: true })
       ],
       paint(ctx) {
-        ctx.fillStyle = '#000';
+        ctx.fillStyle = T.bg;
         ctx.fillRect(0, 0, W, h);
 
-        if (isReady(im)) placeImage(ctx, im, 0, 0, W, imgH, c.imgTf);
-        else placeholder(ctx, 0, 0, W, imgH, '스크린샷을 끌어다 놓으세요');
+        if (isReady(im)) placeImage(ctx, im, FRAME, FRAME, FW, imgH, c.imgTf);
+        else placeholder(ctx, FRAME, FRAME, FW, imgH, '스크린샷을 끌어다 놓으세요');
 
-        if (cap.empty) return;
-
-        if (over) {
-          const y = imgH - capBoxH;
-          const g = ctx.createLinearGradient(0, y - 40, 0, imgH);
+        if (over && !cap.empty) {
+          // 겹친 자막이 읽히도록 사진 아래쪽만 어둡게 깔아 줍니다.
+          const top = yCap - 26;
+          ctx.save();
+          ctx.beginPath();
+          ctx.rect(FRAME, FRAME, FW, imgH);
+          ctx.clip();
+          const g = ctx.createLinearGradient(0, top - 30, 0, FRAME + imgH);
           g.addColorStop(0, 'rgba(0,0,0,0)');
           g.addColorStop(1, 'rgba(0,0,0,0.86)');
           ctx.fillStyle = g;
-          ctx.fillRect(0, y - 40, W, capBoxH + 40);
-          ctx.save();
+          ctx.fillRect(FRAME, top - 30, FW, FRAME + imgH - top + 30);
           ctx.shadowColor = 'rgba(0,0,0,.9)';
           ctx.shadowBlur = 6;
-          cap.paint(ctx, PAD, y + 15, { color: '#fff' });
+          cap.paint(ctx, xCap, yCap, { color: '#fff', maxW: capW });
           ctx.restore();
-        } else {
-          ctx.fillStyle = T.bg;
-          ctx.fillRect(0, imgH, W, capBoxH);
-          cap.paint(ctx, PAD, imgH + 15);
         }
+
+        imageEdge(ctx, FRAME, FRAME, FW, imgH);
+
+        if (!over && !cap.empty) cap.paint(ctx, xCap, yCap, { maxW: capW });
       }
     };
   }

@@ -5,8 +5,8 @@ export default {
   id: 'divider',
   name: '장면 전환',
   desc: '— 10시간 뒤 —',
-  group: '연출',
-  accent: '#867c69',
+  group: '곁들이기',
+  accent: '#9a9186',
 
   create: () => ({ body: '10시간 뒤' }),
 
