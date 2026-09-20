@@ -293,7 +293,8 @@ export default {
   create: () => ({ body: '' }),
 
   // 편집 폼은 이 스키마로 자동 생성됩니다.
-  // 쓸 수 있는 타입: text textarea number range select toggle image strlist pairs note
+  // 쓸 수 있는 타입: text textarea number range select toggle image strlist pairs fold
+  // 설명은 되도록 적지 마세요. 꼭 필요하면 note: '한 줄' 을 칸에 붙이세요.
   fields: [
     { k: 'body', t: 'textarea', label: '내용', rows: 4 }
   ],

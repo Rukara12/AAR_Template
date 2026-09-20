@@ -20,7 +20,12 @@
  *   }
  *
  * ▶ 편집 폼에서 쓸 수 있는 field 타입
- *   text | textarea | number | range | select | toggle | image | strlist | pairs | note
+ *   text | textarea | number | range | select | toggle | image | strlist | pairs
+ *   fold (접어 두기) | steam · fetch (상점 주소 칸)
+ *
+ * ▶ 설명은 되도록 적지 마세요
+ *   폼은 «고치는 곳»이지 «읽는 곳»이 아닙니다. 예시는 ph 로 보여 주면 충분합니다.
+ *   그래도 꼭 알려야 할 것이 있으면 field 에 note: '한 줄' 을 적으세요. 칸 아래에 작게 붙습니다.
  */
 
 import cover    from './cover.js';
