@@ -11,10 +11,9 @@ export default {
   create: () => ({ no: '1', title: '', sub: '' }),
 
   fields: [
-    { k: 'no',    t: 'text', label: '번호 (비워도 됨)', ph: '1' },
+    { k: 'no',    t: 'text', label: '번호', ph: '1' },
     { k: 'title', t: 'text', label: '제목', ph: '전투' },
-    { k: 'sub',   t: 'text', label: '한 줄 설명 (비워도 됨)', ph: '이 게임의 8할' },
-    { k: '', t: 'note', text: '긴 리뷰를 덩어리로 나눌 때 씁니다. 앞에 목차 카드를 두면 더 잘 읽힙니다.' }
+    { k: 'sub',   t: 'text', label: '한 줄 설명', ph: '이 게임의 8할' }
   ],
 
   label: c => [c.no, c.title].filter(Boolean).join('. ') || '섹션 제목',

@@ -56,15 +56,15 @@ export default {
       ph: 'store.steampowered.com/app/… 또는 앱 번호',
       target: 'img', tf: 'imgTf',
       sources: c => SOURCES[c.ratio] || SOURCES.auto,
-      note: '아래 스팀 규격에서 고른 것을, 있는 것 중 가장 큰 파일로 받아옵니다. 게임 정보 카드가 있으면 그 항목도 같이 채웁니다.' },
+      note: '게임 정보 카드까지 같이 채웁니다.' },
     { k: 'img',   t: 'image', label: '헤더 이미지', tf: 'imgTf', ratioKey: 'ratio' },
-    { k: 'title', t: 'text',  label: '게임 제목 (비우면 안 나옵니다)', ph: '게임 이름' },
+    { k: 'title', t: 'text',  label: '게임 제목', ph: '게임 이름' },
     { k: '', t: 'fold', label: '자세한 설정', fields: [
-      { k: 'ratio',  t: 'select', label: '스팀 규격', opts: CAPSULES },
+      { k: 'ratio',  t: 'select', label: '스팀 규격',
+        note: '2배 이상으로 뽑을 거면 와이드 히어로가 가장 또렷합니다.', opts: CAPSULES },
       { k: 'pad',    t: 'number', label: '바깥 여백', min: 0, max: 100, step: 2 },
       { k: 'gap',    t: 'number', label: '테두리 안쪽 여백', min: 0, max: 60, step: 2 },
-      { k: 'border', t: 'number', label: '테두리 두께 (0이면 없음)', min: 0, max: 6, step: 1 },
-      { k: '', t: 'note', text: '헤더는 원본이 920px 라 2배 이상으로 내보내면 늘어나 조금 물러집니다. 또렷하게 뽑고 싶으면 와이드 히어로(3840×1240)를 쓰세요.' }
+      { k: 'border', t: 'number', label: '테두리 두께 (0이면 없음)', min: 0, max: 6, step: 1 }
     ] }
   ],
 

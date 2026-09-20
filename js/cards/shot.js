@@ -20,8 +20,7 @@ export default {
     { k: 'ratio', t: 'select', label: '자를 비율', opts: RATIO_OPTS },
     { k: 'caption', t: 'textarea', label: '자막', rows: 3, ph: '여기서부터 진짜 재밌어진다' },
     { k: 'capPos',  t: 'select',   label: '자막 위치', opts: [['below', '사진 아래'], ['over', '사진 위에 겹치기']] },
-    { k: 'align',   t: 'select',   label: '자막 정렬', opts: [['center', '가운데'], ['left', '왼쪽']] },
-    { k: '', t: 'note', text: '가운데 미리보기에서 바로 끌어 옮기고 Alt+휠로 확대할 수 있습니다. 자막도 눌러서 그 자리에서 고칩니다.' }
+    { k: 'align',   t: 'select',   label: '자막 정렬', opts: [['center', '가운데'], ['left', '왼쪽']] }
   ],
 
   label: c => c.caption?.split('\n')[0] || '자막 스샷',

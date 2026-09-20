@@ -6,7 +6,6 @@
 import { BY_ID } from '../cards/registry.js';
 import { state, selected, patch, patchMany, cardOf } from '../state.js';
 import { readImageFile, firstImageFrom } from '../io/files.js';
-import { parseSteamText, mergeStats } from '../io/steamtext.js';
 import { appIdFrom as appIdFromUrl } from '../io/steamapi.js';
 import { applySteam, rememberSteam, rememberedSteam } from '../io/steamlink.js';
 import { makeImageBox } from './imagebox.js';
@@ -60,7 +59,23 @@ function wrapField(label, node, extra) {
   return d;
 }
 
+/**
+ * 칸 하나를 만듭니다.
+ * 꼭 필요한 한마디는 스키마의 note 에 적으면 칸 아래에 작게 붙습니다.
+ * 설명이 길어지면 폼이 읽기 어려워지므로 한 줄로 끝내세요.
+ */
 function buildField(card, f, def) {
+  const el = buildControl(card, f, def);
+  if (f.note && el.classList?.contains('field')) {
+    const p = document.createElement('p');
+    p.className = 'hint';
+    p.textContent = f.note;
+    el.appendChild(p);
+  }
+  return el;
+}
+
+function buildControl(card, f, def) {
   const v = card[f.k];
 
   switch (f.t) {
@@ -148,7 +163,6 @@ function buildField(card, f, def) {
     // 표지와 게임 정보가 같은 칸을 씁니다. 누르면 둘 다 채워집니다.
     case 'steam':
     case 'fetch':   return steamField(card, f);
-    case 'paste':   return pasteField(card, f);
     case 'fold':    return foldField(card, f, def);
     case 'image':   return imageField(card, f, v, def);
     case 'strlist': return strListField(card, f, v);
@@ -232,62 +246,9 @@ function steamField(card, f) {
 
   const all = document.createElement('div');
   all.append(box, opts);
-  if (f.note) {
-    const note = document.createElement('p');
-    note.className = 'hint';
-    note.textContent = f.note;
-    all.appendChild(note);
-  }
-  return wrapField(f.label, all);
+  return wrapField(f.label, all);   // note 는 buildField 가 붙여 줍니다
 }
 
-/* ── 상점 페이지 글 붙여넣기 ────────────────────────────── */
-/**
- * 스팀 상점 페이지를 끌어 복사해서 여기에 붙이면 항목을 알아서 채웁니다.
- * 상점 API 는 CORS 로 막혀 있지만, 글은 페이지에 그대로 있으니 읽기만 하면 됩니다.
- */
-function pasteField(card, f) {
-  const box = document.createElement('div');
-  box.className = 'pastebox';
-
-  const ta = document.createElement('textarea');
-  ta.rows = 3;
-  ta.placeholder = f.ph || '상점 페이지에서 끌어 복사한 뒤 여기에 붙여넣으세요 (Ctrl+V)';
-
-  const btn = document.createElement('button');
-  btn.type = 'button';
-  btn.textContent = '항목 채우기';
-
-  const run = () => {
-    const raw = ta.value;
-    if (!clean(raw)) return toast('붙여넣은 글이 없습니다.');
-
-    const found = parseSteamText(raw);
-    const cur = cardOf(card.id) || card;
-    const { stats, filled } = mergeStats(cur.stats, found, { overwrite: true });
-
-    if (!filled.length) {
-      return toast('읽을 항목을 못 찾았습니다. 상점 페이지 오른쪽 정보 상자까지 긁어 주세요.', 4000);
-    }
-
-    patchMany(card.id, { stats });
-    ta.value = '';
-    toast(`${filled.join(', ')} 를 채웠습니다.`, 3600);
-  };
-
-  btn.addEventListener('click', run);
-  // 붙여넣자마자 바로 읽습니다. 단추를 또 누르게 하면 번거롭습니다.
-  ta.addEventListener('paste', () => setTimeout(run, 0));
-
-  box.append(ta, btn);
-
-  const note = document.createElement('p');
-  note.className = 'hint';
-  note.textContent = f.note || '';
-  return wrapField(f.label, box, f.note ? note : null);
-}
-
-const clean = s => String(s ?? '').trim();
 
 /* ── 접어 두는 묶음 ─────────────────────────────────────── */
 /** 자주 안 건드리는 설정을 숨겨 둡니다. 접은 상태는 카드 종류별로 기억합니다. */

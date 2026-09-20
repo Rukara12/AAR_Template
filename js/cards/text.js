@@ -11,11 +11,10 @@ export default {
   create: () => ({ heading: '', body: '', align: 'left', size: 20 }),
 
   fields: [
-    { k: 'heading', t: 'text',     label: '소제목 (비워도 됨)', ph: '초반 두 시간' },
+    { k: 'heading', t: 'text',     label: '소제목', ph: '초반 두 시간' },
     { k: 'body',    t: 'textarea', label: '본문', rows: 9, ph: '처음엔 뭘 해야 할지 몰라서 좀 헤맸다.\n근데 감 잡고 나니까 손을 못 떼겠더라.' },
     { k: 'align',   t: 'select',   label: '정렬', opts: [['left', '왼쪽'], ['center', '가운데']] },
-    { k: 'size',    t: 'number',   label: '글자 크기', min: 15, max: 30, step: 1 },
-    { k: '',        t: 'note',     text: '한 카드가 너무 길어지면 두 장으로 나누는 편이 읽기 좋습니다.' }
+    { k: 'size',    t: 'number',   label: '글자 크기', min: 15, max: 30, step: 1 }
   ],
 
   label: c => (c.heading || c.body || '나레이션').split('\n')[0],

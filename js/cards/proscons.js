@@ -21,8 +21,7 @@ export default {
     { k: 'goodTitle', t: 'text',    label: '왼쪽 제목', ph: '좋은 점' },
     { k: 'goods',     t: 'strlist', label: '좋은 점', ph: '전투가 손에 착 붙는다', add: '항목 추가' },
     { k: 'badTitle',  t: 'text',    label: '오른쪽 제목', ph: '아쉬운 점' },
-    { k: 'bads',      t: 'strlist', label: '아쉬운 점', ph: '후반부 반복 구간이 길다', add: '항목 추가' },
-    { k: '', t: 'note', text: '항목은 미리보기에서 눌러 바로 고칠 수 있습니다. 개수를 늘리려면 여기서 추가하세요.' }
+    { k: 'bads',      t: 'strlist', label: '아쉬운 점', ph: '후반부 반복 구간이 길다', add: '항목 추가' }
   ],
 
   label: c => `${(c.goods || []).filter(Boolean).length}장점 / ${(c.bads || []).filter(Boolean).length}단점`,

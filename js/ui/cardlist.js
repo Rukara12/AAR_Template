@@ -73,17 +73,20 @@ function showMarker(at) {
 }
 
 /**
- * 목록에 곁들이는 한 줄.
+ * 커서를 올렸을 때 보여 줄 글.
+ *
  * 이 목록은 «무엇이 어떤 차례로 있는지» 보는 곳이지 내용을 읽는 곳이 아닙니다.
- * 적은 내용을 그대로 흘리면 카드마다 길이가 들쭉날쭉해져서 구성이 안 보입니다.
- * 그래서 줄바꿈을 없애고 짧게 잘라 둡니다. 전체는 커서를 올리면 보입니다.
+ * 적은 내용을 줄에 같이 흘리면 카드마다 길이가 들쭉날쭉해져서 구성이 안 보입니다.
+ * 그래서 줄에는 카드 종류만 두고, 내용은 커서를 올렸을 때만 보여 줍니다.
  */
-const HINT_MAX = 20;
-function hintOf(def, card) {
+const TIP_MAX = 60;
+function tipOf(def, card) {
+  const name = def?.name || card.type;
   const raw = String(def?.label(card) ?? '').replace(/\s+/g, ' ').trim();
-  // 카드 종류 이름을 그대로 되뇌는 것은 (빈 카드일 때) 적을 이유가 없습니다.
-  if (!raw || raw === def?.name) return '';
-  return raw.length > HINT_MAX ? `${raw.slice(0, HINT_MAX)}…` : raw;
+  // 빈 카드는 label 이 카드 종류 이름을 그대로 돌려줍니다. 두 번 적을 이유가 없습니다.
+  if (!raw || raw === name) return name;
+  const body = raw.length > TIP_MAX ? `${raw.slice(0, TIP_MAX)}…` : raw;
+  return `${name}\n${body}`;
 }
 
 export function renderCardList() {
@@ -100,15 +103,11 @@ export function renderCardList() {
     el.innerHTML = `
       <span class="no"></span>
       <span class="ty"></span>
-      <span class="lb"></span>
       <button class="mini" data-act="dup" title="복제">⧉</button>
       <button class="mini" data-act="del" title="삭제">✕</button>`;
     el.querySelector('.no').textContent = i + 1;
     el.querySelector('.ty').textContent = def?.name || card.type;
-
-    const hint = hintOf(def, card);
-    el.querySelector('.lb').textContent = hint;
-    if (hint) el.title = `${def?.name}\n${String(def.label(card)).trim()}`;
+    el.title = tipOf(def, card);
 
     el.addEventListener('click', e => {
       const act = e.target.dataset?.act;

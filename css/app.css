@@ -136,13 +136,10 @@ body.nopanel #insp{display:none}
 .citem.sel{background:#3a3223;border-color:var(--gold)}
 .citem.drag{opacity:.3}
 .citem .no{font-size:11px;color:var(--ink3);width:17px;flex:0 0 17px;text-align:right}
-/* 카드 종류가 먼저. 폭을 고정해서 적은 내용과 상관없이 세로로 줄이 맞습니다. */
-.citem .ty{font-size:13px;color:var(--ink);flex:0 0 auto;min-width:76px}
-/* 적은 내용은 곁들이기. 길어도 한 줄을 넘지 않습니다. */
-.citem .lb{
-  flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-  font-size:11.5px;color:var(--ink3);
-}
+/* 줄에는 카드 종류만. 적은 내용은 커서를 올렸을 때 title 로만 보입니다.
+   그래야 무엇을 적든 줄 모양이 그대로입니다. */
+.citem .ty{font-size:13px;color:var(--ink);flex:1;min-width:0;
+           overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* 단추는 커서를 올렸을 때만. 자리는 미리 잡아 둬서 줄이 안 흔들립니다. */
 .citem .mini{opacity:0;transition:opacity .12s}
 .citem:hover .mini,.citem.sel .mini{opacity:1}
@@ -178,12 +175,6 @@ body.nopanel #insp{display:none}
   font-size:11.5px;color:var(--ink3);cursor:pointer;
 }
 .fetchopts input{width:13px;height:13px;flex:none;margin:0}
-
-/* 상점 페이지 글 붙여넣기 */
-.pastebox textarea{
-  width:100%;resize:vertical;min-height:58px;font-family:var(--ui);font-size:12.5px;line-height:1.55;
-}
-.pastebox button{margin-top:6px;width:100%}
 
 .imgbox{margin-bottom:8px}
 .imgbox-stage{

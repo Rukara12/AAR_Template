@@ -20,13 +20,12 @@ export default {
   }),
 
   fields: [
-    { k: 'heading', t: 'text',  label: '소제목 (비워도 됨)', ph: '옵션 최저 / 최고' },
+    { k: 'heading', t: 'text',  label: '소제목', ph: '옵션 최저 / 최고' },
     { k: 'imgA',    t: 'image', label: '왼쪽 이미지', tf: 'tfA', ratioKey: 'ratio' },
     { k: 'capA',    t: 'text',  label: '왼쪽 설명', ph: '전' },
     { k: 'imgB',    t: 'image', label: '오른쪽 이미지', tf: 'tfB', ratioKey: 'ratio' },
     { k: 'capB',    t: 'text',  label: '오른쪽 설명', ph: '후' },
-    { k: 'ratio',   t: 'select', label: '두 상자의 비율', opts: RATIO_OPTS },
-    { k: '', t: 'note', text: '두 이미지를 같은 상자에 맞춰 자릅니다. 미리보기에서 각각 끌어 위치를 맞추면 비교가 훨씬 잘 보입니다.' }
+    { k: 'ratio',   t: 'select', label: '두 상자의 비율', opts: RATIO_OPTS }
   ],
 
   label: c => c.heading || `${c.capA || '전'} / ${c.capB || '후'}`,

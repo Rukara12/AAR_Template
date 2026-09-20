@@ -1,11 +1,10 @@
 /**
- * 스팀 상점 페이지에서 끌어 복사한 글을 읽어서 항목으로 나눕니다.
+ * 스팀 상점 페이지의 글을 읽어서 항목으로 나눕니다.
  *
- * 상점 API(JSON)는 CORS 를 막아 두어 브라우저에서 못 부릅니다.
- * 하지만 필요한 정보는 전부 페이지에 글로 적혀 있으니, 긁어서 붙여넣으면 그만입니다.
- * 서버도 프록시도 필요 없습니다.
+ * 최근 평가(지난 30일)는 API 에 없고 페이지에만 적혀 있습니다.
+ * 그래서 js/io/steamapi.js 가 페이지를 통째로 받아 와서 이 규칙으로 읽습니다.
  *
- * 실제 상점 페이지에서 복사되는 모양 (한국어):
+ * 페이지에 적혀 있는 모양 (한국어):
  *
  *   개발자:
  *   Team Cherry
@@ -168,26 +167,3 @@ export function parseSteamText(raw) {
   return out;
 }
 
-/**
- * 뽑은 항목을 카드의 stats 목록에 얹습니다.
- * 이미 적어 둔 값은 건드리지 않습니다. (덮어쓰면 고쳐 둔 게 날아갑니다)
- * @returns { stats, filled, skipped }
- */
-export function mergeStats(stats, found, { overwrite = false } = {}) {
-  const next = (stats || []).map(s => ({ ...s }));
-  const filled = [];
-  const skipped = [];
-
-  for (const [key, value] of Object.entries(found)) {
-    const row = next.find(s => clean(s.l) === key);
-    if (!row) continue;                        // 카드에 없는 항목은 넣지 않습니다
-    if (row.v && !overwrite) { skipped.push(key); continue; }
-    if (row.v === value) continue;
-    row.v = value;
-    filled.push(key);
-  }
-  return { stats: next, filled, skipped };
-}
-
-/** 제목처럼 stats 밖으로 가는 값 */
-export const titleFrom = found => found['제목'] || null;

@@ -11,7 +11,7 @@ export default {
   create: () => ({ body: '10시간 뒤' }),
 
   fields: [
-    { k: 'body', t: 'text', label: '문구 (비우면 선만 그립니다)', ph: '10시간 뒤' }
+    { k: 'body', t: 'text', label: '문구 (비우면 선만)', ph: '10시간 뒤' }
   ],
 
   label: c => c.body || '장면 전환',

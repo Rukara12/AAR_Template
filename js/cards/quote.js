@@ -12,7 +12,7 @@ export default {
 
   fields: [
     { k: 'body', t: 'textarea', label: '문장', rows: 3, ph: '이 장면 하나 보려고 20시간 버텼다' },
-    { k: 'by',   t: 'text',     label: '출처 · 화자 (비워도 됨)', ph: '— 3장 엔딩' }
+    { k: 'by',   t: 'text',     label: '출처 · 화자', ph: '— 3장 엔딩' }
   ],
 
   label: c => (c.body || '인용 강조').split('\n')[0],
