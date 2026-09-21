@@ -105,27 +105,38 @@ function readRating(lines, i, first) {
   return paren ? `${verdict} (${paren})` : verdict;
 }
 
+const MONEY = /(?:₩|원|\$|US\$|€|£)\s?[\d,]+(?:\.\d{2})?|[\d,]+\s?원/g;
+/* 할인율. 평가 설명의 «- 96% of the 4,361 user reviews …» 같은 문장이
+   할인율로 잘못 읽히지 않도록, 뒤에 가격이 붙거나 줄이 끝나는 것만 인정합니다. */
+const OFF = /-\s?(\d{1,3})\s?%(?=\s*$|\s*(?:US\$|[₩$€£-]))/g;
+
 /**
- * 가격. 할인 중이면 «-20%» 다음에 정가와 할인가가 잇달아 나옵니다.
- * 마지막 값이 실제로 낼 돈입니다.
+ * 가격. 할인 중이면 할인율 · 정가 · 할인가가 잇달아 나오고, 마지막 값이 실제로 낼 돈입니다.
+ *
+ * 상점 페이지에서는 이 셋이 «-20%₩ 37,500₩ 30,000» 처럼 한 줄에 붙어 나옵니다.
+ * 끌어 복사해서 붙여넣으면 줄이 나뉘어 옵니다. 두 모양을 다 읽어야 합니다.
  */
 function readPrice(lines) {
-  const moneyRe = /(?:₩|원|\$|US\$|€|£)\s?[\d,]+(?:\.\d{2})?|[\d,]+\s?원/;
-  const idx = [];
-  lines.forEach((line, i) => { if (moneyRe.test(line)) idx.push(i); });
+  const has = line => { MONEY.lastIndex = 0; return MONEY.test(line); };
+  const first = lines.findIndex(has);
 
-  const free = lines.find(l => /^(무료 플레이|무료|Free To Play|Free)$/i.test(l));
-  if (!idx.length) return free ? '무료' : null;
+  if (first < 0) {
+    return lines.some(l => /^(무료 플레이|무료|Free To Play|Free)$/i.test(l)) ? '무료' : null;
+  }
 
-  // 첫 가격 앞뒤로 할인율이 있는지 봅니다.
-  const first = idx[0];
-  const around = lines.slice(Math.max(0, first - 3), first + 3);
-  const off = (around.map(l => l.match(/^-\s?(\d{1,3})\s?%$/)).find(Boolean) || [])[1];
-
-  // 할인 중이면 붙어 있는 가격 중 마지막(=할인가)을 씁니다.
+  // 가격이 여러 줄로 나뉘어 있으면 잇달아 붙은 줄까지 한 덩어리로 봅니다.
   let last = first;
-  while (idx.includes(last + 1)) last++;
-  const price = clean((lines[last].match(moneyRe) || [])[0]).replace(/\s+/g, '');
+  while (last + 1 < lines.length && has(lines[last + 1])) last++;
+  const group = lines.slice(first, last + 1);
+
+  const moneys = group.flatMap(l => String(l).match(MONEY) || []);
+  if (!moneys.length) return null;
+  const price = clean(moneys[moneys.length - 1]).replace(/\s+/g, '');
+
+  // 할인율은 가격 바로 앞이나 같은 줄에 붙습니다.
+  const near = [...lines.slice(Math.max(0, first - 3), first), ...group];
+  const offs = near.flatMap(l => [...String(l).matchAll(OFF)].map(m => m[1]));
+  const off = offs[offs.length - 1];
 
   return off ? `${price} (-${off}%)` : price;
 }

@@ -147,18 +147,22 @@ function ratingOf(summary) {
 function fromStorePage(html) {
   if (!html || !/<html/i.test(html)) return {};
   const doc = new DOMParser().parseFromString(html, 'text/html');
-  const grab = sel => [...doc.querySelectorAll(sel)]
-    .map(e => e.textContent.replace(/[ \t]+/g, ' '))
-    .join('\n');
+  // 스크립트 안의 숫자가 가격으로 잘못 읽히지 않게 먼저 걷어냅니다.
+  doc.querySelectorAll('script, style, noscript').forEach(e => e.remove());
+
+  const textOf = el => (el ? el.textContent.replace(/[ \t]+/g, ' ') : '');
+  const all = sel => [...doc.querySelectorAll(sel)].map(textOf).join('\n');
+
+  /* 구매 상자는 맨 위 하나만 봅니다.
+     아래쪽에는 DLC 와 묶음 상품이 줄줄이 붙어 있어서, 다 읽으면 엉뚱한 가격을 집습니다. */
+  const buy = doc.querySelector('.game_area_purchase_game');
 
   // 붙여넣기로 읽을 때와 똑같은 규칙을 씁니다. (js/io/steamtext.js)
   const text = [
-    grab('#genresAndManufacturer'),
-    grab('.user_reviews'),
-    grab('.game_area_purchase_game:first-of-type')
+    all('#genresAndManufacturer'),
+    all('.user_reviews'),
+    textOf(buy)
   ].filter(Boolean).join('\n');
-
-  // 출시일·장르는 페이지에 보이는 그대로가 맞아서 여기서 가져갑니다.
 
   return parseSteamText(text);
 }
@@ -193,6 +197,11 @@ async function fromStore(appid) {
      사람이 보는 오른쪽 정보 상자 쪽이 맞는데, 그 값이 api.steamcmd.net 과 같아서
      여기서는 날짜를 안 가져옵니다. */
   delete page.출시일;
+
+  /* 가격도 API 가 있으면 API 를 씁니다. 할인율·통화가 숫자로 딱 떨어져서 확실합니다.
+     페이지 쪽은 할인 중일 때 «-20%₩ 37,500₩ 30,000» 처럼 한 줄에 붙어 나와서
+     읽을 수는 있지만 상점 표시가 바뀌면 깨지기 쉽습니다. API 가 없을 때만 씁니다. */
+  if (api.가격) delete page.가격;
 
   const out = { ...api };
   for (const [k, v] of Object.entries(page)) if (v) out[k] = v;
